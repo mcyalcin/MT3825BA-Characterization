@@ -1,0 +1,16 @@
+target/
+lib_managed/
+src_managed/
+project/boot/
+.history
+.cache
+*.class
+*.iml
+*.ipr
+*.iws
+.idea
+out
+tags
+.*.swp
+.*.swo
+*.log
