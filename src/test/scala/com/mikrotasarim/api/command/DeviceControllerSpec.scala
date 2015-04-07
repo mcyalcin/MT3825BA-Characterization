@@ -88,7 +88,7 @@ class DeviceControllerSpec extends FlatSpec with Matchers {
     val device = new MockDeviceInterface(outputBuffer)
     val deviceController = new DeviceController(device)
     deviceController.setIntegrationTime(10)
-    val expectedOutput = "Wire 1 set to value 201\nWire 3 set to value 10\nWire Ins Updated\nTrigger 64 set to value 0\n"
+    val expectedOutput = "Wire 1 set to value 201\nWire 3 set to value 10\nWire Ins Updated\nTrigger 64 set to value 0\nWire 1 set to value 203\nWire Ins Updated\nTrigger 64 set to value 0\n"
     outputBuffer.toString() should be(expectedOutput)
   }
 
@@ -198,7 +198,7 @@ class DeviceControllerSpec extends FlatSpec with Matchers {
     val outputBuffer = new StringBuilder
     val device = new MockDeviceInterface(outputBuffer)
     val deviceController = new DeviceController(device)
-    deviceController.setNucMode(NucMode.mode_00)
+    deviceController.setNucMode(NucMode.Disabled)
     val expectedOutput = "Wire 1 set to value 186\nWire 3 set to value 0\nWire Ins Updated\nTrigger 64 set to value 0\n"
     outputBuffer.toString() should be(expectedOutput)
   }
@@ -207,7 +207,7 @@ class DeviceControllerSpec extends FlatSpec with Matchers {
     val outputBuffer = new StringBuilder
     val device = new MockDeviceInterface(outputBuffer)
     val deviceController = new DeviceController(device)
-    deviceController.setNucMode(NucMode.mode_10, 10)
+    deviceController.setNucMode(NucMode.Fixed, 10)
     val expectedOutput = "Wire 1 set to value 186\nWire 3 set to value 2562\nWire Ins Updated\nTrigger 64 set to value 0\n"
     outputBuffer.toString() should be(expectedOutput)
   }
@@ -222,7 +222,6 @@ class DeviceControllerSpec extends FlatSpec with Matchers {
   }
 
   it should "disable imaging mode" in {
-    // TODO
     val outputBuffer = new StringBuilder
     val device = new MockDeviceInterface(outputBuffer)
     val deviceController = new DeviceController(device)
@@ -232,7 +231,6 @@ class DeviceControllerSpec extends FlatSpec with Matchers {
   }
 
   it should "enable imaging mode" in {
-    // TODO
     val outputBuffer = new StringBuilder
     val device = new MockDeviceInterface(outputBuffer)
     val deviceController = new DeviceController(device)

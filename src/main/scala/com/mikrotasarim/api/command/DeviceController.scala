@@ -2,6 +2,8 @@ package com.mikrotasarim.api.command
 
 import com.mikrotasarim.api.device.DeviceInterface
 
+import spire.implicits._
+
 class DeviceController(device: DeviceInterface) {
 
   import ApiConstants._
@@ -21,6 +23,11 @@ class DeviceController(device: DeviceInterface) {
     setWiresAndTrigger(Map(
       commandWire -> getIdOpCode
     ))
+    // TODO: Add error code handling
+//    val errorCode = device.getWireOutValue(errorWire)
+//    if (errorCode % 65536 != 0) {
+//      throw new Exception(errorCode.toString)
+//    }
     device.getWireOutValue(readWire)
   }
 
@@ -79,6 +86,7 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> sIntTOpCode,
       dataWire -> time
     ))
+    updateRoicMemory()
   }
 
   def setFrameTime(time: Long): Unit = {
@@ -162,9 +170,49 @@ class DeviceController(device: DeviceInterface) {
     device.getWireOutValue(readWire)
   }
 
-  // TODO: Decide how flash memory data is to be stored. Check how in pipes work. Implement these accordingly.
-  def readFromFlashMemory() = ???
-  def writeToFlashMemory() = ???
+  def readFromFlashMemory(): Array[Byte] = {
+    resetFlashOutFifo()
+    val line = Array.ofDim[Byte](lineSize)
+    device.readFromPipeOut(flashFifoOutPipe, line.length, line)
+    line
+  }
+
+  def readFrameFromFlashMemory(): Array[Array[Byte]] = {
+    val frame = Array.ofDim[Array[Byte]](numRows)
+    for (rowIndex <- 0 to numRows) {
+      frame(rowIndex) = readFromFlashMemory()
+    }
+    frame
+  }
+
+  private def resetFlashOutFifo(): Unit = {
+    device.setWireInValue(resetWire, 0, 2 pow flashFifoOutReset)
+    device.updateWireIns()
+    device.setWireInValue(resetWire, 2 pow flashFifoInReset, 2 pow flashFifoOutReset)
+    device.updateWireIns()
+  }
+  
+  private def resetFlashInFifo(): Unit = {
+    device.setWireInValue(resetWire, 0, 2 pow flashFifoInReset)
+    device.updateWireIns()
+    device.setWireInValue(resetWire, 2 pow flashFifoInReset, 2 pow flashFifoInReset)
+    device.updateWireIns()
+  }
+
+  def writeToFlashMemory(line: Array[Byte], index: Int) = {
+    resetFlashInFifo()
+    device.writeToPipeIn(flashFifoInPipe, line.length, line)
+    setWiresAndTrigger(Map(
+      commandWire -> wFMemOpCode,
+      addressWire -> index
+    ))
+  }
+
+  def writeFrameToFlashMemory(frame: Array[Array[Byte]]): Unit = {
+    for (line <- frame.zipWithIndex) {
+      writeToFlashMemory(line._1, line._2)
+    }
+  }
 
   def eraseActiveFlashPartition(): Unit = {
     setWiresAndTrigger(Map(
@@ -221,13 +269,27 @@ class DeviceController(device: DeviceInterface) {
 
 object ApiConstants {
 
+  val resetWire = 0x00
   val commandWire = 0x01
   val addressWire = 0x02
   val dataWire = 0x03
 
   val readWire = 0x20
+  val errorWire = 0x21
 
   val triggerWire = 0x40
+
+  val flashFifoInPipe = 0x80
+  val flashFifoOutPipe = 0x80
+
+  val systemReset = 0
+  val clockReset = 1
+  val flashFifoInReset = 2
+  val flashFifoOutReset = 3
+  val nucFifoOutReset = 4
+
+  val lineSize = 384
+  val numRows = 290
 
   val getIdOpCode = 0xc0
   val setRsOpCode = 0xc1
@@ -269,9 +331,8 @@ object ApiConstants {
     val NoMirroring, X_Mirror, Y_Mirror, XY_Mirror = Value
   }
 
-  // TODO: Put in meaningful names for this enumeration
   object NucMode extends Enumeration {
     type NucMode = Value
-    val mode_00, mode_01, mode_10 = Value
+    val Disabled, Enabled, Fixed = Value
   }
 }
