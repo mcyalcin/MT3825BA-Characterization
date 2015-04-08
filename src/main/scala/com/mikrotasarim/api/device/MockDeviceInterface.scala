@@ -27,7 +27,7 @@ class MockDeviceInterface(outputBuffer: StringBuilder) extends DeviceInterface {
     outputBuffer.append("Wire " + wireNumber + " set to value " + value + " with mask " + mask + "\n")
 
   override def getWireOutValue(address: Int): Long = {
-    outputBuffer.append("Wire " + address + " read.")
+    outputBuffer.append("Wire " + address + " read\n")
     0
   }
 

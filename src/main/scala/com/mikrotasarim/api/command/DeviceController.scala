@@ -17,17 +17,31 @@ class DeviceController(device: DeviceInterface) {
     }
     device.updateWireIns()
     device.activateTriggerIn(triggerWire, 0)
+    val errorCode = device.getWireOutValue(errorWire)
+    checkErrorCode(errorCode)
+  }
+
+  private def checkErrorCode(errorCode: Long): Unit = {
+    errorCode % 65536 match {
+      case 0 => return
+      case 0x0ff => throw new Exception("Invalid command.")
+      case 0xbe0 => throw new Exception("Integration time too low.")
+      case 0xbe1 => throw new Exception("Frame time too low.")
+      case 0xbe2 => throw new Exception("Imaging in progress.")
+      case 0xbe3 => throw new Exception("Invalid NUC mode.")
+      case 0xbe4 => throw new Exception("Invalid trigger mode.")
+      case 0xbe5 => throw new Exception("SPI busy.")
+      case 0xbf0 => throw new Exception("Flash busy.")
+      case 0xbf1 => throw new Exception("Flash not ready.")
+      case 0xbf2 => throw new Exception("Invalid flash partition.")
+    }
+    throw new Exception("Unexpected error code: " + errorCode)
   }
 
   def getId: Long = {
     setWiresAndTrigger(Map(
       commandWire -> getIdOpCode
     ))
-    // TODO: Add error code handling
-//    val errorCode = device.getWireOutValue(errorWire)
-//    if (errorCode % 65536 != 0) {
-//      throw new Exception(errorCode.toString)
-//    }
     device.getWireOutValue(readWire)
   }
 
