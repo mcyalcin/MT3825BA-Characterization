@@ -94,9 +94,6 @@ class DeviceController(device: DeviceInterface) {
     ))
   }
 
-  // TODO: Pending specification
-  def setOutputMode() = ???
-
   def setIntegrationTime(time: Long): Unit = {
     setWiresAndTrigger(Map(
       commandWire -> sIntTOpCode,
@@ -204,7 +201,7 @@ class DeviceController(device: DeviceInterface) {
   private def resetFlashOutFifo(): Unit = {
     device.setWireInValue(resetWire, 0, 2 pow flashFifoOutReset)
     device.updateWireIns()
-    device.setWireInValue(resetWire, 2 pow flashFifoInReset, 2 pow flashFifoOutReset)
+    device.setWireInValue(resetWire, 2 pow flashFifoOutReset, 2 pow flashFifoOutReset)
     device.updateWireIns()
   }
   
@@ -236,7 +233,13 @@ class DeviceController(device: DeviceInterface) {
     ))
   }
 
-  def updateReferenceDataOnFlashMemory() = ???
+  def updateReferenceDataOnFlashMemory(referenceData: Array[Byte]): Unit = {
+    resetFlashInFifo()
+    device.writeToPipeIn(flashFifoInPipe, referenceData.length, referenceData)
+    setWiresAndTrigger(Map(
+      commandWire -> upRefOpCode
+    ))
+  }
 
   def sendReferenceDataToRoic(): Unit = {
     setWiresAndTrigger(Map(
@@ -244,8 +247,8 @@ class DeviceController(device: DeviceInterface) {
     ))
   }
 
-  def updateReferenceData(): Unit = {
-    updateReferenceDataOnFlashMemory()
+  def updateReferenceData(referenceData: Array[Byte]): Unit = {
+    updateReferenceDataOnFlashMemory(referenceData)
     sendReferenceDataToRoic()
   }
 
