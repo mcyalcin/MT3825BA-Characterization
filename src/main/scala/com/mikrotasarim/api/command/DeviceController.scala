@@ -17,11 +17,13 @@ class DeviceController(device: DeviceInterface) {
     }
     device.updateWireIns()
     device.activateTriggerIn(triggerWire, 0)
+    device.updateWireOuts()
     val errorCode = device.getWireOutValue(errorWire)
     checkErrorCode(errorCode)
   }
 
   private def checkErrorCode(errorCode: Long): Unit = {
+
     errorCode % 65536 match {
       case 0 => return
       case 0x0ff => throw new Exception("Invalid command.")

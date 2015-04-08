@@ -31,7 +31,9 @@ class MockDeviceInterface(outputBuffer: StringBuilder) extends DeviceInterface {
     0
   }
 
-  override def updateWireOuts(): Unit = ???
+  override def updateWireOuts(): Unit = {
+    outputBuffer.append("Wire Outs Updated\n")
+  }
 
   override def readFromPipeOut(address: Int, size: Int, data: Array[Byte]): Unit = ???
 
