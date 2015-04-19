@@ -295,6 +295,7 @@ object ApiConstants {
 
   val readWire = 0x20
   val errorWire = 0x21
+  val statusWire = 0x22
 
   val triggerWire = 0x40
 
@@ -306,6 +307,8 @@ object ApiConstants {
   val flashFifoInReset = 2
   val flashFifoOutReset = 3
   val nucFifoOutReset = 4
+
+  val statusFlashReadyBit = 0
 
   val lineSize = 384
   val numRows = 290
