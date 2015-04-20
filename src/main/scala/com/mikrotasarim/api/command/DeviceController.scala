@@ -294,6 +294,16 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> enbImOpCode
     ))
   }
+
+  def getFrame: Array[Int] = {
+    setWiresAndTrigger(Map(
+      commandWire -> sFsynOpCode
+    ))
+    val frameSize = lineSize * numRows * 4
+    val rawFrame = Array.ofDim[Byte](frameSize)
+    device.readFromBlockPipeOut(flashFifoOutPipe, frameSize, rawFrame)
+    rawFrame
+  }
 }
 
 object ApiConstants {
@@ -352,6 +362,7 @@ object ApiConstants {
   val sPxMpOpCode = 0xbb
   val disImOpCode = 0xe0
   val enbImOpCode = 0xe1
+  val sFsynOpCode = 0xe2
 
   object TriggerMode extends Enumeration {
     type TriggerMode = Value
