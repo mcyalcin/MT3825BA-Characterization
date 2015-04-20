@@ -26,6 +26,7 @@ object MemoryMap {
     def Commit(): Unit = {
       val value = java.lang.Long.parseLong(text.value, 2)
       DeviceController.writeToRoicMemory(address, value)
+      Read()
     }
   }
 }

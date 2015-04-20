@@ -4,6 +4,8 @@ import com.mikrotasarim.api.device.DeviceInterface
 
 import spire.implicits._
 
+class ImagingInProgressException extends Exception("Imaging in progress.")
+
 class DeviceController(device: DeviceInterface) {
 
   import ApiConstants._
@@ -29,7 +31,7 @@ class DeviceController(device: DeviceInterface) {
       case 0x0ff => throw new Exception("Invalid command.")
       case 0xbe0 => throw new Exception("Integration time too low.")
       case 0xbe1 => throw new Exception("Frame time too low.")
-      case 0xbe2 => throw new Exception("Imaging in progress.")
+      case 0xbe2 => throw new ImagingInProgressException
       case 0xbe3 => throw new Exception("Invalid NUC mode.")
       case 0xbe4 => throw new Exception("Invalid trigger mode.")
       case 0xbe5 => throw new Exception("SPI busy.")
@@ -110,9 +112,13 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def updateRoicMemory(): Unit = {
-    setWiresAndTrigger(Map(
-      commandWire -> uRoicOpCode
-    ))
+    try {
+      setWiresAndTrigger(Map(
+        commandWire -> uRoicOpCode
+      ))
+    } catch {
+      case e: ImagingInProgressException => // Ignore imaging in progress exception
+    }
   }
 
   def writeToRoicMemoryBuffer(address: Int, value: Long): Unit = {
@@ -183,8 +189,12 @@ class DeviceController(device: DeviceInterface) {
     device.getWireOutValue(readWire)
   }
 
-  def readFromFlashMemory(): Array[Byte] = {
+  def readFromFlashMemory(index: Int): Array[Byte] = {
     resetFlashOutFifo()
+    setWiresAndTrigger(Map(
+      commandWire -> rFMemOpCode,
+      addressWire -> index
+    ))
     val line = Array.ofDim[Byte](lineSize)
     device.readFromPipeOut(flashFifoOutPipe, line.length, line)
     line
@@ -193,7 +203,7 @@ class DeviceController(device: DeviceInterface) {
   def readFrameFromFlashMemory(): Array[Array[Byte]] = {
     val frame = Array.ofDim[Array[Byte]](numRows)
     for (rowIndex <- 0 to numRows) {
-      frame(rowIndex) = readFromFlashMemory()
+      frame(rowIndex) = readFromFlashMemory(rowIndex)
     }
     frame
   }
