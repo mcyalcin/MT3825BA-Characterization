@@ -295,7 +295,7 @@ class DeviceController(device: DeviceInterface) {
     ))
   }
 
-  def getFrame: Array[Int] = {
+  def getFrame: Array[Byte] = {
     setWiresAndTrigger(Map(
       commandWire -> sFsynOpCode
     ))
