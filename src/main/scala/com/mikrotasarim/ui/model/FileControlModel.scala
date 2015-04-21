@@ -18,7 +18,7 @@ object FileControlModel {
   }
 
   def openImage(): Unit = {
-    val rawFrame = FpgaController.DeviceController.getFrame
+    val rawFrame = FpgaController.deviceController.getFrame
     println(rawFrame.length)
     Frame.show()
   }

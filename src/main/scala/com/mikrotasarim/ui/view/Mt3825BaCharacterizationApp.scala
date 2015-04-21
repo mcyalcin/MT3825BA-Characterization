@@ -24,13 +24,13 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     root = new BorderPane {
       left = GeneralControls
       center = ControlTabs
-      right = ImageDisplay
     }
   }
 
   stage.setMaximized(true)
 
   def ControlTabs: Node = new TabPane {
+    disable <== !deviceConnected
     tabs = List(
       new Tab {
         text = "Image"
@@ -146,11 +146,13 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  def CalibrationControlPanel: Node = new VBox
+  def CalibrationControlPanel: Node = new VBox {
+    disable = true
+  }
 
-  def MeasurementControlPanel: Node = new VBox
-
-  def ImageDisplay: Node = new VBox
+  def MeasurementControlPanel: Node = new VBox {
+    disable = true
+  }
 
   def GeneralControls: Node = new VBox {
     padding = Insets(10)
@@ -163,18 +165,21 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   def ConnectButton: Node = new Button("Connect") {
+    disable <== deviceConnected
     onAction = handle {
       connectToFpga()
     }
   }
 
   def DisconnectButton: Node = new Button("Disconnect") {
+    disable <== !deviceConnected
     onAction = handle {
       disconnectFromFpga()
     }
   }
 
   def MemoryMapButton: Node = new Button("Memory Map") {
+    disable <== !deviceConnected
     onAction = () => {
       MemoryMap.readRoicMemory()
       MemoryMapStage.show()

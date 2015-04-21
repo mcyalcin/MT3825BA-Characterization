@@ -2,7 +2,7 @@ package com.mikrotasarim.ui.model
 
 import scalafx.beans.property.StringProperty
 
-import com.mikrotasarim.ui.controller.FpgaController.DeviceController
+import com.mikrotasarim.ui.controller.FpgaController.deviceController
 
 object MemoryMap {
 
@@ -20,12 +20,12 @@ object MemoryMap {
   class MemoryLocation(val address: Int) {
     val text = StringProperty("0000000000000000")
     def read(): Unit = {
-      val value = DeviceController.readFromRoicMemory(address)
+      val value = deviceController.readFromRoicMemory(address)
       text.value = String.format("%16s", value.toBinaryString).replace(' ', '0')
     }
     def commit(): Unit = {
       val value = java.lang.Long.parseLong(text.value, 2)
-      DeviceController.writeToRoicMemory(address, value)
+      deviceController.writeToRoicMemory(address, value)
       read()
     }
   }
