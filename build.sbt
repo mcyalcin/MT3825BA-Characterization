@@ -6,7 +6,7 @@ scalaVersion := "2.11.6"
 
 unmanagedBase := baseDirectory.value / "lib"
 
-unmanagedJars ++= {
+unmanagedJars in Compile ++= {
   val base = baseDirectory.value
   val baseDirectories = base / "lib"
   val customJars = baseDirectories ** "*.jar"

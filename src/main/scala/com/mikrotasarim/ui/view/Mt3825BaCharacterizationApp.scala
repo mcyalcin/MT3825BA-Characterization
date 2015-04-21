@@ -5,6 +5,7 @@ import com.mikrotasarim.ui.model.MemoryMap
 import scalafx.Includes._
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
+import scalafx.beans.property.StringProperty
 import scalafx.geometry.Insets
 import scalafx.scene.layout._
 import scalafx.scene.{Node, Scene}
@@ -14,16 +15,6 @@ import com.mikrotasarim.ui.model.FileControlModel._
 import com.mikrotasarim.ui.controller.FpgaController._
 
 object Mt3825BaCharacterizationApp extends JFXApp {
-
-  def Reset(): Unit = {
-    stage.scene = new Scene(stage.scene.width.intValue(), stage.scene.height.intValue()) {
-      root = new BorderPane {
-        left = GeneralControls
-        center = ControlTabs
-        right = ImageDisplay
-      }
-    }
-  }
 
   stage = new PrimaryStage {
     title = "Mikro-Tasarim MT3825BA Characterization App"
@@ -65,37 +56,93 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       spacing = 20
 
       content = List(
-        ImageSaveControls
+        windowingControls,
+        new Separator,
+        imageSaveControls,
+        new Separator,
+        imageOpenButton
       )
     }
   }
 
-  def ImageSaveControls: Node = new VBox {
+  def windowingControls: Node = new VBox {
+    spacing = 10
+
+    content = List(
+      new HBox {
+        spacing = 10
+        content = List(xOriginBox, xSizeBox)
+      },
+      new HBox {
+        spacing = 10
+        content = List(yOriginBox, ySizeBox)
+      },
+      new HBox {
+        spacing = 10
+        content = List(
+          new Button("Apply"),
+          new Button("Default") {
+            onAction = handle {
+              resetWindowSize()
+            }
+          }
+        )
+      }
+
+    )
+  }
+
+  def box(label: String, property: StringProperty): Node = new HBox {
+    spacing = 10
+    content = List(
+      new Label(label),
+      new TextField {
+        prefColumnCount = 5
+        text <==> property
+      }
+    )
+  }
+
+  def xOriginBox: Node = box("x Origin", xOrigin)
+
+  def xSizeBox: Node = box("x Size", xSize)
+
+  def yOriginBox: Node = box("y Origin", yOrigin)
+
+  def ySizeBox: Node = box("y Size", ySize)
+
+  def imageSaveControls: Node = new VBox {
     spacing = 10
 
     content = List(
       new Label("Save Images"),
-      ImagePrefixSelector,
-      ImageNumberSelector,
-      ImageSaveButton
+      imagePrefixSelector,
+      imageNumberSelector,
+      imageSaveButton
     )
   }
 
-  def ImagePrefixSelector: Node = new TextField {
+  def imageOpenButton: Node = new Button("Open") {
+    onAction = handle {
+      openImage()
+    }
+  }
+
+  def imagePrefixSelector: Node = new TextField {
     prefColumnCount = 15
     promptText = "File prefix"
     text <==> filePrefix
   }
 
-  def ImageNumberSelector: Node = new TextField {
+  def imageNumberSelector: Node = new TextField {
     prefColumnCount = 15
     promptText = "Sample count"
     text <==> sampleCount
   }
 
-  def ImageSaveButton: Node = new Button("Save") {
+  def imageSaveButton: Node = new Button("Save") {
     onAction = handle {
-      SaveImages()
+      saveImages()
     }
   }
 
@@ -111,32 +158,25 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     content = List(
       ConnectButton,
       DisconnectButton,
-      ResetButton,
       MemoryMapButton
     )
   }
 
   def ConnectButton: Node = new Button("Connect") {
     onAction = handle {
-      ConnectToFpga()
+      connectToFpga()
     }
   }
 
   def DisconnectButton: Node = new Button("Disconnect") {
     onAction = handle {
-      DisconnectFromFpga()
-    }
-  }
-
-  def ResetButton: Node = new Button("Reset") {
-    onAction = handle {
-      ResetChip()
+      disconnectFromFpga()
     }
   }
 
   def MemoryMapButton: Node = new Button("Memory Map") {
     onAction = () => {
-      MemoryMap.ReadRoicMemory()
+      MemoryMap.readRoicMemory()
       MemoryMapStage.show()
     }
   }

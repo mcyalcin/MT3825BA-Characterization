@@ -13,6 +13,16 @@ class DeviceController(device: DeviceInterface) {
   import ApiConstants.MirrorMode._
   import ApiConstants.NucMode._
 
+  def takeFpgaOffReset(): Unit = {
+    takeOffReset(clockReset)
+    takeOffReset(systemReset)
+  }
+
+  def takeOffReset(reset: Int): Unit = {
+    device.setWireInValue(resetWire, 2 pow reset, 2 pow reset)
+    device.updateWireIns()
+  }
+
   private def setWiresAndTrigger(wires: Map[Int, Long]): Unit = {
     for (wire <- wires.keys) {
       device.setWireInValue(wire, wires(wire))

@@ -33,7 +33,7 @@ object MemoryMapStage extends Stage {
       },
       new Button("Commit") {
         onAction = handle {
-          model.Commit()
+          model.commit()
         }
       }
     )

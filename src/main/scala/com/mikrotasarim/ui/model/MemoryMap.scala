@@ -11,22 +11,22 @@ object MemoryMap {
 
   val memoryLocations = for (i <- minMemoryIndex to maxMemoryIndex) yield new MemoryLocation(i)
 
-  def ReadRoicMemory(): Unit = {
+  def readRoicMemory(): Unit = {
     for (memoryLocation <- memoryLocations) {
-      memoryLocation.Read()
+      memoryLocation.read()
     }
   }
 
   class MemoryLocation(val address: Int) {
     val text = StringProperty("0000000000000000")
-    def Read(): Unit = {
+    def read(): Unit = {
       val value = DeviceController.readFromRoicMemory(address)
       text.value = String.format("%16s", value.toBinaryString).replace(' ', '0')
     }
-    def Commit(): Unit = {
+    def commit(): Unit = {
       val value = java.lang.Long.parseLong(text.value, 2)
       DeviceController.writeToRoicMemory(address, value)
-      Read()
+      read()
     }
   }
 }
