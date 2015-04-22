@@ -22,35 +22,35 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   stage.scene = new Scene {
     root = new BorderPane {
-      left = GeneralControls
-      center = ControlTabs
+      left = generalControls
+      center = controlTabs
     }
   }
 
   stage.setMaximized(true)
 
-  def ControlTabs: Node = new TabPane {
+  def controlTabs: Node = new TabPane {
     disable <== !deviceConnected
     tabs = List(
       new Tab {
         text = "Image"
         closable = false
-        content = ImageControlPanel
+        content = imageControlPanel
       },
       new Tab {
         text = "Calibration"
         closable = false
-        content = CalibrationControlPanel
+        content = calibrationControlPanel
       },
       new Tab {
         text = "Measurement"
         closable = false
-        content = MeasurementControlPanel
+        content = measurementControlPanel
       }
     )
   }
 
-  def ImageControlPanel: Node = new ScrollPane {
+  def imageControlPanel: Node = new ScrollPane {
     content = new VBox {
       padding = Insets(10)
       spacing = 20
@@ -146,39 +146,39 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  def CalibrationControlPanel: Node = new VBox {
+  def calibrationControlPanel: Node = new VBox {
     disable = true
   }
 
-  def MeasurementControlPanel: Node = new VBox {
+  def measurementControlPanel: Node = new VBox {
     disable = true
   }
 
-  def GeneralControls: Node = new VBox {
+  def generalControls: Node = new VBox {
     padding = Insets(10)
     spacing = 20
     content = List(
-      ConnectButton,
-      DisconnectButton,
-      MemoryMapButton
+      connectButton,
+      disconnectButton,
+      memoryMapButton
     )
   }
 
-  def ConnectButton: Node = new Button("Connect") {
+  def connectButton: Node = new Button("Connect") {
     disable <== deviceConnected
     onAction = handle {
       connectToFpga()
     }
   }
 
-  def DisconnectButton: Node = new Button("Disconnect") {
+  def disconnectButton: Node = new Button("Disconnect") {
     disable <== !deviceConnected
     onAction = handle {
       disconnectFromFpga()
     }
   }
 
-  def MemoryMapButton: Node = new Button("Memory Map") {
+  def memoryMapButton: Node = new Button("Memory Map") {
     disable <== !deviceConnected
     onAction = () => {
       MemoryMap.readRoicMemory()

@@ -16,6 +16,12 @@ object FpgaController {
   val xSize = StringProperty("384")
   val yOrigin = StringProperty("0")
   val ySize = StringProperty("290")
+  // TODO: Add validation to number fields
+
+  xOrigin.onChange(deviceController.setWindowOrigin(xOrigin.value.toLong, yOrigin.value.toLong))
+  yOrigin.onChange(deviceController.setWindowOrigin(xOrigin.value.toLong, yOrigin.value.toLong))
+  xSize.onChange(deviceController.setWindowSize(xSize.value.toLong, ySize.value.toLong))
+  ySize.onChange(deviceController.setWindowSize(xSize.value.toLong, ySize.value.toLong))
 
   def resetWindowSize(): Unit = {
     xOrigin.set("0")
