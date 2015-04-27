@@ -20,6 +20,6 @@ object FileControlModel {
   def openImage(): Unit = {
     val rawFrame = FpgaController.deviceController.getFrame
     println(rawFrame.length)
-    Frame.show()
+    Frame.show("a.tiff")
   }
 }

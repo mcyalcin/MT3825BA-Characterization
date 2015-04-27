@@ -330,7 +330,7 @@ object ApiConstants {
   val triggerWire = 0x40
 
   val flashFifoInPipe = 0x80
-  val flashFifoOutPipe = 0x80
+  val flashFifoOutPipe = 0xa0
 
   val systemReset = 0
   val clockReset = 1

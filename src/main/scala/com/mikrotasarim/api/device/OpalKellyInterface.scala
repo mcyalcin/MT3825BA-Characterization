@@ -29,7 +29,8 @@ class OpalKellyInterface(bitFileName: String) extends DeviceInterface {
 
   override def activateTriggerIn(address: Int, bit: Int): Unit = OpalKellyInterface.panel.ActivateTriggerIn(address, bit)
 
-  override def writeToPipeIn(address: Int, size: Int, data: Array[Byte]): Unit = OpalKellyInterface.panel.WriteToPipeIn(address, size, data)
+  // TODO: Test what values work as size parameter.
+  override def writeToPipeIn(address: Int, size: Int, data: Array[Byte]): Unit = OpalKellyInterface.panel.WriteToPipeIn(address, 512, data)
 
   override def readFromPipeOut(address: Int, size: Int, data: Array[Byte]): Unit = {
     OpalKellyInterface.panel.ReadFromPipeOut(address, size, data)
