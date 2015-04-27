@@ -37,7 +37,7 @@ class DeviceController(device: DeviceInterface) {
   private def checkErrorCode(errorCode: Long): Unit = {
 
     errorCode % 65536 match {
-      case 0 => return
+      case 0 =>
       case 0x0ff => throw new Exception("Invalid command.")
       case 0xbe0 => throw new Exception("Integration time too low.")
       case 0xbe1 => throw new Exception("Frame time too low.")
@@ -48,8 +48,9 @@ class DeviceController(device: DeviceInterface) {
       case 0xbf0 => throw new Exception("Flash busy.")
       case 0xbf1 => throw new Exception("Flash not ready.")
       case 0xbf2 => throw new Exception("Invalid flash partition.")
+      case 0xbf3 => throw new Exception("Imaging not enabled.")
+      case default => throw new Exception("Unexpected error code: " + default)
     }
-    throw new Exception("Unexpected error code: " + errorCode)
   }
 
   def getId: Long = {
