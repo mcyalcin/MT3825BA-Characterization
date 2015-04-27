@@ -1,7 +1,7 @@
 package com.mikrotasarim.api.command
 
 import com.mikrotasarim.api.command.ApiConstants.{NucMode, MirrorMode, TriggerMode}
-import com.mikrotasarim.api.device.MockDeviceInterface
+import com.mikrotasarim.api.device.{OpalKellyInterface, MockDeviceInterface}
 
 import org.scalatest.{Matchers, FlatSpec}
 
