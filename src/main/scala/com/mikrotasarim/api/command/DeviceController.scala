@@ -283,7 +283,14 @@ class DeviceController(device: DeviceInterface) {
   def setNucMode(mode: NucMode, fixedData: Long): Unit = {
     setWiresAndTrigger(Map(
       commandWire -> sTNucOpCode,
-      dataWire -> (mode.id + 256 * fixedData)
+      dataWire -> (mode.id + 256 * fixedData + 65536 * fixedData)
+    ))
+  }
+
+  def setNucMode(mode: NucMode, topData: Long, botData: Long): Unit = {
+    setWiresAndTrigger(Map(
+      commandWire -> sTNucOpCode,
+      dataWire -> (mode.id + 256 * topData + 65536 * botData)
     ))
   }
 
