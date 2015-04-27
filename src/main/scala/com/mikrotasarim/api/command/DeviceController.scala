@@ -317,9 +317,9 @@ class DeviceController(device: DeviceInterface) {
     setWiresAndTrigger(Map(
       commandWire -> sFsynOpCode
     ))
-    val frameSize = lineSize * numRows * 4
+    val frameSize = lineSize * numRows * 2
     val rawFrame = Array.ofDim[Byte](frameSize)
-    device.readFromBlockPipeOut(flashFifoOutPipe, frameSize, rawFrame)
+    device.readFromBlockPipeOut(imageOutPipe, frameSize, rawFrame)
     rawFrame
   }
 }
@@ -338,7 +338,10 @@ object ApiConstants {
   val triggerWire = 0x40
 
   val flashFifoInPipe = 0x80
+
   val flashFifoOutPipe = 0xa0
+  val nucOutPipe = 0xa1
+  val imageOutPipe = 0xa2
 
   val systemReset = 0
   val clockReset = 1
@@ -349,7 +352,7 @@ object ApiConstants {
   val statusFlashReadyBit = 0
 
   val lineSize = 384
-  val numRows = 290
+  val numRows = 289
 
   val getIdOpCode = 0xc0
   val setRsOpCode = 0xc1
