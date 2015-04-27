@@ -213,7 +213,7 @@ class DeviceController(device: DeviceInterface) {
 
   def readFrameFromFlashMemory(): Array[Array[Byte]] = {
     val frame = Array.ofDim[Array[Byte]](numRows)
-    for (rowIndex <- 0 to numRows) {
+    for (rowIndex <- 0 until numRows) {
       frame(rowIndex) = readFromFlashMemory(rowIndex)
     }
     frame
