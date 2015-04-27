@@ -322,6 +322,10 @@ class DeviceController(device: DeviceInterface) {
     device.readFromBlockPipeOut(imageOutPipe, frameSize, rawFrame)
     rawFrame
   }
+
+  def setAdcDelay(delay: Long): Unit = {
+    device.setWireInValue(delayWire, delay)
+  }
 }
 
 object ApiConstants {
@@ -330,6 +334,7 @@ object ApiConstants {
   val commandWire = 0x01
   val addressWire = 0x02
   val dataWire = 0x03
+  val delayWire = 0x04
 
   val readWire = 0x20
   val errorWire = 0x21
