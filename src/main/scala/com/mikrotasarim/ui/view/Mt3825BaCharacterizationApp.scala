@@ -160,7 +160,19 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     content = List(
       connectButton,
       disconnectButton,
-      memoryMapButton
+      memoryMapButton,
+      selfTestModeSelector
+    )
+  }
+
+  def selfTestModeSelector: Node = new HBox {
+    spacing = 10
+    content = List(
+      new Label("Self test"),
+      new CheckBox {
+        disable <== deviceConnected
+        selected <==> isSelfTest
+      }
     )
   }
 

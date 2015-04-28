@@ -8,9 +8,11 @@ import scalafx.beans.property.{BooleanProperty, StringProperty}
 
 object FpgaController {
 
-  var deviceController = new DeviceController(new ConsoleMockDeviceInterface)
+  var deviceController: DeviceController = null
+  var device: OpalKellyInterface = null
 
   val deviceConnected = BooleanProperty(value = false)
+  val isSelfTest = BooleanProperty(value = false)
 
   val xOrigin = StringProperty("0")
   val xSize = StringProperty("384")
@@ -31,8 +33,14 @@ object FpgaController {
   }
 
   def connectToFpga(): Unit = {
-    val device = new OpalKellyInterface("guy.bit")
-    deviceController = new DeviceController(device)
+    deviceController = if (!isSelfTest.value) {
+      if (device == null) {
+        device = new OpalKellyInterface("guy.bit")
+      }
+      new DeviceController(device)
+    } else {
+      new DeviceController(new ConsoleMockDeviceInterface)
+    }
     deviceController.initializeRoic()
     deviceController.setTriggerMode(TriggerMode.Slave_Software)
     deviceController.setNucMode(NucMode.Enabled)

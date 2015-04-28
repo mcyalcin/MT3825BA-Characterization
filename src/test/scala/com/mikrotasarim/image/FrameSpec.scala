@@ -16,4 +16,11 @@ class FrameSpec extends FlatSpec with Matchers{
     frame3.saveTiff("c.tiff")
     Frame.show("c.tiff")
   }
+
+  it should "be created from raw data" in {
+    val blackImageRaw = Array.ofDim[Byte](384*288*2)
+    val frame = Frame.fromRaw(blackImageRaw)
+    frame.saveTiff("r.tiff")
+    Frame.show("r.tiff")
+  }
 }
