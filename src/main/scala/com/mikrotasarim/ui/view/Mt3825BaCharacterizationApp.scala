@@ -50,6 +50,78 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
+  def calibrationControlPanel: Node = new ScrollPane {
+    content = new VBox {
+      padding = Insets(10)
+      spacing = 20
+      content = List(
+        nucControls,
+        new Separator,
+        correctionControls
+      )
+    }
+  }
+
+  def correctionControls: Node = {
+    val correctionMode = new ToggleGroup
+    new VBox {
+      spacing = 10
+      content = List(
+        new CheckBox("Enable Correction") {
+          selected <==> correctionEnabled
+        },
+        new RadioButton("1 point") {
+          disable <== !correctionEnabled
+          selected <==> onePointCorrection
+          toggleGroup = correctionMode
+        },
+        new RadioButton("2 point") {
+          disable <== !correctionEnabled
+          selected <==> twoPointCorrection
+          toggleGroup = correctionMode
+        },
+        new Button("Get Dark Image"),
+        new Button("Get Gray Image")
+      )
+    }
+  }
+
+  def nucControls: Node = new VBox {
+    spacing = 10
+    content = List(
+      partitionSelector,
+      new Button("Calculate and Save")
+    )
+  }
+
+  def partitionSelector: Node = new ChoiceBox(flashPartitions) {
+    value <==> selectedPartition
+  }
+
+  def measurementControlPanel: Node = new ScrollPane {
+    content = new VBox {
+      padding = Insets(10)
+      spacing = 20
+      content = List(
+        netd,
+        new Separator,
+        resistorMap,
+        new Separator,
+        noise,
+        new Separator,
+        responsivity
+      )
+    }
+  }
+
+  def netd: Node = new Button("NETD")
+
+  def resistorMap: Node = new Button("Resistor Map")
+
+  def noise: Node = new Button("Noise Histogram")
+
+  def responsivity: Node = new Button("Responsivity")
+
   def imageControlPanel: Node = new ScrollPane {
     content = new VBox {
       padding = Insets(10)
@@ -146,14 +218,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  def calibrationControlPanel: Node = new VBox {
-    disable = true
-  }
-
-  def measurementControlPanel: Node = new VBox {
-    disable = true
-  }
-
   def generalControls: Node = new VBox {
     padding = Insets(10)
     spacing = 20
@@ -165,15 +229,9 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
-  def selfTestModeSelector: Node = new HBox {
-    spacing = 10
-    content = List(
-      new Label("Self test"),
-      new CheckBox {
-        disable <== deviceConnected
-        selected <==> isSelfTest
-      }
-    )
+  def selfTestModeSelector: Node = new CheckBox("Self Test") {
+    disable <== deviceConnected
+    selected <==> isSelfTest
   }
 
   def connectButton: Node = new Button("Connect") {

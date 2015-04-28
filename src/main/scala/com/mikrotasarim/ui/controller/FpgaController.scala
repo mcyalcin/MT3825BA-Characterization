@@ -5,6 +5,7 @@ import com.mikrotasarim.api.command.DeviceController
 import com.mikrotasarim.api.device.{OpalKellyInterface, ConsoleMockDeviceInterface}
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
+import scalafx.collections.{ObservableBuffer, ObservableArray}
 
 object FpgaController {
 
@@ -13,6 +14,26 @@ object FpgaController {
 
   val deviceConnected = BooleanProperty(value = false)
   val isSelfTest = BooleanProperty(value = false)
+  val correctionEnabled = BooleanProperty(value = false)
+  val onePointCorrection = BooleanProperty(value = false)
+  val twoPointCorrection = BooleanProperty(value = false)
+
+  val flashPartitions = ObservableBuffer(List(
+      "Partition 1",
+      "Partition 2",
+      "Partition 3",
+      "Partition 4",
+      "Partition 5",
+      "Partition 6",
+      "Partition 7",
+      "Partition 8",
+      "Partition 9",
+      "Partition 10",
+      "Partition 11",
+      "Partition 12"
+    )
+  )
+  val selectedPartition = StringProperty("Partition 1")
 
   val xOrigin = StringProperty("0")
   val xSize = StringProperty("384")
