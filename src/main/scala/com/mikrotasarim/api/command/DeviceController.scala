@@ -242,14 +242,6 @@ class DeviceController(device: DeviceInterface) {
     ))
   }
 
-  def writeFrameToFlashMemory(flatFrame: IndexedSeq[Byte]): Unit = {
-    val frame = Array.ofDim[Byte](288, 384)
-    for (i <- 0 until 288 * 384) {
-      frame(i / 384)(i % 384) = flatFrame(i)
-    }
-    writeFrameToFlashMemory(frame)
-  }
-
   def writeFrameToFlashMemory(frame: Array[Array[Byte]]): Unit = {
     for (line <- frame.zipWithIndex) {
       writeToFlashMemory(line._1, line._2)

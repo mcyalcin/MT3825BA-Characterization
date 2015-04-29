@@ -1,11 +1,12 @@
 package com.mikrotasarim.ui.controller
 
+import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode}
 import com.mikrotasarim.api.command.DeviceController
-import com.mikrotasarim.api.device.{OpalKellyInterface, ConsoleMockDeviceInterface}
+import com.mikrotasarim.api.device.{ConsoleMockDeviceInterface, OpalKellyInterface}
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
-import scalafx.collections.{ObservableBuffer, ObservableArray}
+import scalafx.collections.ObservableBuffer
 
 object FpgaController {
 
@@ -35,10 +36,34 @@ object FpgaController {
   )
   val selectedPartition = StringProperty("Partition 1")
 
+  selectedPartition.onChange(
+    currentNucLabel.value = nucFrames(partitionToIndex(selectedPartition.value)).getOrElse(new NucFrame("", null, null)).name
+  )
+
+  val partitionToIndex = Map(
+    "Partition 1" -> 0,
+    "Partition 2" -> 1,
+    "Partition 3" -> 2,
+    "Partition 4" -> 3,
+    "Partition 5" -> 4,
+    "Partition 6" -> 5,
+    "Partition 7" -> 6,
+    "Partition 8" -> 7,
+    "Partition 9" -> 8,
+    "Partition 10" -> 9,
+    "Partition 11" -> 10,
+    "Partition 12" -> 11
+  )
+
+  val nucFrames = Array.ofDim[Option[NucFrame]](12)
+  for (i <- 0 until 12) nucFrames(i) = None
+  val nucLabel = StringProperty("")
+  val currentNucLabel = StringProperty("")
+
   val xOrigin = StringProperty("0")
   val xSize = StringProperty("384")
   val yOrigin = StringProperty("0")
-  val ySize = StringProperty("290")
+  val ySize = StringProperty("288")
   // TODO: Add validation to number fields
 
   xOrigin.onChange(deviceController.setWindowOrigin(xOrigin.value.toLong, yOrigin.value.toLong))
@@ -50,7 +75,7 @@ object FpgaController {
     xOrigin.set("0")
     xSize.set("384")
     yOrigin.set("0")
-    ySize.set("290")
+    ySize.set("288")
   }
 
   def connectToFpga(): Unit = {
@@ -67,8 +92,6 @@ object FpgaController {
     deviceController.setNucMode(NucMode.Enabled)
     deviceController.enableImagingMode()
     deviceConnected.set(true)
-
-    // TODO: Add exception handling
   }
 
   def calculateAndApplyNuc(): Unit = {
@@ -83,6 +106,7 @@ object FpgaController {
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until 10) yield frameSet(j)(i)).sum.toDouble / 10 - 8192)
     }
+    val deadPixels = Array.ofDim[Boolean](384*288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
       var min = nucCalibrationDistances(0)(i)
       var minIndex = 0
@@ -92,10 +116,18 @@ object FpgaController {
           minIndex = j
         }
       }
+      if (min > 1000) deadPixels(i) = true
       minIndex
     }.toByte
-    deviceController.writeFrameToFlashMemory(idealNuc)
+    val frame = Array.ofDim[Byte](288, 384)
+    for (i <- 0 until 288 * 384) {
+      frame(i / 384)(i % 384) = idealNuc(i)
+    }
+    deviceController.writeFrameToFlashMemory(frame)
     deviceController.setNucMode(NucMode.Enabled)
+    nucFrames(partitionToIndex(selectedPartition.value)) = Some(new NucFrame(nucLabel.value, frame, deadPixels))
+    currentNucLabel.value = nucLabel.value
+    nucLabel.value = ""
   }
 
   def disconnectFromFpga(): Unit = {

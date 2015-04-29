@@ -1,6 +1,7 @@
 package com.mikrotasarim.ui.view
 
 import com.mikrotasarim.ui.model.MemoryMap
+import org.controlsfx.dialog.Dialogs
 
 import scalafx.Includes._
 import scalafx.application.JFXApp
@@ -89,6 +90,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def nucControls: Node = new VBox {
     spacing = 10
     content = List(
+      nameBox,
       partitionSelector,
       new Button("Calculate and Save") {
         onAction = handle {
@@ -98,8 +100,22 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
-  def partitionSelector: Node = new ChoiceBox(flashPartitions) {
-    value <==> selectedPartition
+  def nameBox: Node = new TextField {
+    promptText = "Enter NUC Setting Label"
+    prefColumnCount = 25
+    text <==> nucLabel
+  }
+
+  def partitionSelector: Node = new HBox {
+    spacing = 10
+    content = List(
+      new ChoiceBox(flashPartitions) {
+        value <==> selectedPartition
+      },
+      new Label {
+        text <==> currentNucLabel
+      }
+    )
   }
 
   def measurementControlPanel: Node = new ScrollPane {
@@ -143,7 +159,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def windowingControls: Node = new VBox {
     spacing = 10
-
     content = List(
       new HBox {
         spacing = 10
@@ -164,7 +179,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           }
         )
       }
-
     )
   }
 
@@ -241,7 +255,25 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def connectButton: Node = new Button("Connect") {
     disable <== deviceConnected
     onAction = handle {
-      connectToFpga()
+      try {
+        connectToFpga()
+      } catch {
+        case e: UnsatisfiedLinkError => Dialogs.create()
+          .title("Error")
+          .masthead("Unsatisfied Link")
+          .message("Opal Kelly driver not in java library path.")
+          .showException(e)
+        case e: Exception => Dialogs.create()
+          .title("Exception")
+          .masthead("Unhandled Exception")
+          .message(e.getMessage)
+          .showException(e)
+        case e: Error => Dialogs.create()
+          .title("Error")
+          .masthead("Unhandled Error")
+          .message(e.getMessage)
+          .showException(e)
+      }
     }
   }
 
