@@ -90,7 +90,11 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     spacing = 10
     content = List(
       partitionSelector,
-      new Button("Calculate and Save")
+      new Button("Calculate and Save") {
+        onAction = handle {
+          calculateAndApplyNuc()
+        }
+      }
     )
   }
 

@@ -71,6 +71,33 @@ object FpgaController {
     // TODO: Add exception handling
   }
 
+  def calculateAndApplyNuc(): Unit = {
+    val nucCalibrationDistances = for (i <- 0 to 63) yield {
+      deviceController.setNucMode(NucMode.Fixed, i)
+      val frameSet = for (i <- 0 until 10) yield {
+        val rawFrame = deviceController.getFrame
+        for (i <- 0 until 384 * 288) yield {
+          rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
+        }
+      }
+      for (i <- 0 until 384 * 288) yield
+        math.abs((for (j <- 0 until 10) yield frameSet(j)(i)).sum.toDouble / 10 - 8192)
+    }
+    val idealNuc = for (i <- 0 until 384 * 288) yield {
+      var min = nucCalibrationDistances(0)(i)
+      var minIndex = 0
+      for (j <- 1 until 63) {
+        if (nucCalibrationDistances(j)(i) < min) {
+          min = nucCalibrationDistances(j)(i)
+          minIndex = j
+        }
+      }
+      minIndex
+    }.toByte
+    deviceController.writeFrameToFlashMemory(idealNuc)
+    deviceController.setNucMode(NucMode.Enabled)
+  }
+
   def disconnectFromFpga(): Unit = {
     deviceConnected.set(false)
   }
