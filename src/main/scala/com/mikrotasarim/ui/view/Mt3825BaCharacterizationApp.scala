@@ -1,5 +1,6 @@
 package com.mikrotasarim.ui.view
 
+import com.mikrotasarim.api.device.DeviceNotFoundException
 import com.mikrotasarim.ui.model.MemoryMap
 import org.controlsfx.dialog.Dialogs
 
@@ -262,6 +263,11 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           .title("Error")
           .masthead("Unsatisfied Link")
           .message("Opal Kelly driver not in java library path.")
+          .showException(e)
+        case e: DeviceNotFoundException => Dialogs.create()
+          .title("Device Not Found Exception")
+          .masthead("Device Not Found")
+          .message(e.getMessage)
           .showException(e)
         case e: Exception => Dialogs.create()
           .title("Exception")

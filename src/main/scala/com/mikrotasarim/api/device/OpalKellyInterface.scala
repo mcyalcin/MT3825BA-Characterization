@@ -6,6 +6,8 @@ object OpalKellyInterface {
   val panel = new okCFrontPanel()
 }
 
+class DeviceNotFoundException extends Exception("No Opal Kelly device is connected or the connection is held by another process.")
+
 class OpalKellyInterface(bitFileName: String) extends DeviceInterface {
 
   System.loadLibrary("okjFrontPanel")
@@ -13,7 +15,7 @@ class OpalKellyInterface(bitFileName: String) extends DeviceInterface {
   val panel = new okCFrontPanel()
 
   if (okCFrontPanel.ErrorCode.NoError != OpalKellyInterface.panel.OpenBySerial("")) {
-    throw new Exception("A device could not be opened.  Is one connected?\n")
+    throw new DeviceNotFoundException
   }
 
   OpalKellyInterface.panel.LoadDefaultPLLConfiguration()
