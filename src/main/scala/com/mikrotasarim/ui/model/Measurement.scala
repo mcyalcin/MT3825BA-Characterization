@@ -12,11 +12,12 @@ class Measurement {
   def calculateSlope(): Unit = {
     if (graySet && darkSet) {
       val avg = (for (i <- 0 until 384 * 288) yield Seq(gray(i) - dark(i), 0).max).sum.toDouble / (384*288)
-      if (avg < 100) {
-        slopeSet = false
-        throw new Exception("Gray and Dark images are too close to calculate slope.")
-      }
-      slope = (for (i <- 0 until 384 * 288) yield (gray(i) - dark(i)).toDouble / avg).toArray
+      // TODO: Implement rejection rules and dead pixel marking here if necessary
+//      if (avg < 100) {
+//        slopeSet = false
+//        throw new Exception("Gray and Dark images are too close to calculate slope.")
+//      }
+      slope = (for (i <- 0 until 384 * 288) yield avg / (gray(i) - dark(i)).toDouble).toArray
       slopeSet = true
     }
   }

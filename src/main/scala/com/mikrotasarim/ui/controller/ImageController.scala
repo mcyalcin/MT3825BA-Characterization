@@ -30,8 +30,11 @@ object ImageController {
     def onePointCorrect(img: Array[Int]): Array[Int] =
       (for (i <- 0 until 384 * 288) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
 
-    def twoPointCorrect(img: Array[Int]): Array[Int] =
-      img // TODO: Implement
+    def twoPointCorrect(img: Array[Int]): Array[Int] = {
+      (for (i <- 0 until 384 * 288) yield
+        (MeasurementController.measurement.slope(i) *
+          Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toInt).toArray
+    }
 
     val rawFrame = FpgaController.deviceController.getFrame
     val frame = combineBytes(rawFrame)
