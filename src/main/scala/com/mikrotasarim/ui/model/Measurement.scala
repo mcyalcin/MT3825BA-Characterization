@@ -4,9 +4,10 @@ import java.io.File
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lambdaworks.jacks.JacksMapper
+import com.mikrotasarim.ui.controller.MeasurementController
 import org.apache.commons.io.FileUtils
 
-import scalafx.beans.property.BooleanProperty
+import scalafx.beans.property.{StringProperty, BooleanProperty}
 
 class Measurement {
   def calculateSlope(): Unit = {
@@ -125,4 +126,7 @@ object Measurement {
 
   val darkImageSet = BooleanProperty(value = false)
   val slopeSet = BooleanProperty(value = false)
+  val name = StringProperty("")
+
+  name.onChange(MeasurementController.measurement.name = name.value)
 }

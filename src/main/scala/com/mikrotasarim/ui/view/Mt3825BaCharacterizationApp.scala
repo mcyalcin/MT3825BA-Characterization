@@ -96,7 +96,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def nucControls: Node = new VBox {
     spacing = 10
     content = List(
-      nameBox,
+      nucLabelBox,
       partitionSelector,
       new Button("Calculate and Save") {
         onAction = handle {
@@ -106,7 +106,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
-  def nameBox: Node = new TextField {
+  def nucLabelBox: Node = new TextField {
     promptText = "Enter NUC Setting Label"
     prefColumnCount = 25
     text <==> nucLabel
@@ -249,8 +249,21 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       connectButton,
       disconnectButton,
       memoryMapButton,
-      selfTestModeSelector
+      selfTestModeSelector,
+      nameBox,
+      saveButton
     )
+  }
+
+  def nameBox: Node = new TextField {
+    text <==> Measurement.name
+    prefColumnCount = 10
+    promptText = "Enter Die Label"
+  }
+
+  def saveButton: Node = new Button("Save Results") {
+    MeasurementController.measurement.save("result.json")
+    // TODO: Add file selector for saving results
   }
 
   def selfTestModeSelector: Node = new CheckBox("Self Test") {

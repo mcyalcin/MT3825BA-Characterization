@@ -16,7 +16,9 @@ object MeasurementController {
 
   def load(): Unit = {
     measurement = Measurement.fromFile(fileName.value)
-    // TODO: Initialize properties using measurement if necessary
+    // TODO: Initialize properties using measurement if necessary.
+    Measurement.name.set(measurement.name)
+    // TODO: This sort of usage of Measurement object is ugly. Find a better way.
   }
 
   def captureAverageFrame: IndexedSeq[Int] = {
