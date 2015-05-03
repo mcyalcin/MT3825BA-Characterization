@@ -8,12 +8,14 @@ class MeasurementSpec extends FlatSpec with Matchers {
 
   "A measurement" should "be saved" in {
     val m = new Measurement()
+    m.name = "zzz"
     m.save("a.file")
     val file = new File("a.file")
   }
 
   "A measurement" should "be restored from save file" in {
     val m = new Measurement()
+    m.name = "ali"
     m.save("a.file")
     val n = Measurement.fromFile("a.file")
     assert(m equals n)

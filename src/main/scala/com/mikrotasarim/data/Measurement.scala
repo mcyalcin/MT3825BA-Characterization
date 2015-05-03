@@ -2,14 +2,17 @@ package com.mikrotasarim.data
 
 import java.io.File
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.lambdaworks.jacks.JacksMapper
 import org.apache.commons.io.FileUtils
 
-import scalafx.beans.property.StringProperty
+class Measurement {
 
-class Measurement() {
+  @JsonProperty("name")
+  private var _name: String = ""
 
-  val name = StringProperty("")
+  def name = _name
+  def name_=(that: String) = _name = that
 
   def save(fileName: String): Unit = {
     val file = new File(fileName)
@@ -22,10 +25,10 @@ class Measurement() {
   }
 
   override def equals(o: Any) = o match {
-    case that: Measurement => that.name.value.equalsIgnoreCase(this.name.value)
+    case that: Measurement => that.name.equalsIgnoreCase(this.name)
     case _ => false
   }
-  override def hashCode = name.value.toUpperCase.hashCode
+  override def hashCode = name.toUpperCase.hashCode
 }
 
 object Measurement {
