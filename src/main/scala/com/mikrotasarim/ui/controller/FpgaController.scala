@@ -98,6 +98,7 @@ object FpgaController {
     deviceConnected.set(true)
   }
 
+  // TODO: Move this to a more relevant controller (measurement, or if we create one, calibration)
   def calculateAndApplyNuc(): Unit = {
     val nucCalibrationDistances = for (i <- 0 to 63) yield {
       deviceController.setNucMode(NucMode.Fixed, i)
@@ -123,6 +124,7 @@ object FpgaController {
       if (min > 1000) deadPixels(i) = true
       minIndex
     }.toByte
+    MeasurementController.measurement.dead = deadPixels
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = idealNuc(i)

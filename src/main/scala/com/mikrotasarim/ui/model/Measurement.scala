@@ -33,7 +33,10 @@ class Measurement {
   val netd = Array.ofDim[Int](384 * 288)
 
   @JsonProperty("dead")
-  val dead = Array.ofDim[Boolean](384 * 288)
+  private var _dead = Array.ofDim[Boolean](384 * 288)
+
+  def dead = _dead
+  def dead_=(that: Array[Boolean]) = _dead = that
 
   @JsonProperty("dark")
   private var _dark = Array.ofDim[Int](384 * 288)
