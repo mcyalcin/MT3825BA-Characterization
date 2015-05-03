@@ -22,12 +22,14 @@ public class Frame {
     public void saveTiff(String fileName) throws IOException {
         BufferedImage bufferedImage = new BufferedImage(384, 288, BufferedImage.TYPE_USHORT_GRAY);
         bufferedImage.getRaster().setDataElements(0,0,384,288, pixelArray);
-        File file = new File(filePath + fileName);
+        File file = new File(fileName);
+        file.getParentFile().mkdirs();
+        file.createNewFile();
         ImageIO.write(bufferedImage, "TIFF", file);
     }
 
     public static void show(String fileName) {
-        ImagePlus img = IJ.openImage(filePath + fileName);
+        ImagePlus img = IJ.openImage(fileName);
         img.show();
     }
 
@@ -38,6 +40,4 @@ public class Frame {
         }
         return new Frame(pixelArray);
     }
-
-    private static String filePath = "/home/mcyalcin/Desktop/";
 }

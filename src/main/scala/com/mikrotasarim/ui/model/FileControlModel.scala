@@ -12,14 +12,17 @@ object FileControlModel {
 
   def saveImages(): Unit = {
     for (i <- 0 until sampleCount.value.toInt) {
-      // TODO: Implement acquisition and persistence of images
+      val rawFrame = FpgaController.deviceController.getFrame
+      val frame = Frame.fromRaw(rawFrame)
+      frame.saveTiff(filePrefix.value + "_" + i + ".tif")
       println("Sample " + filePrefix.value + "_" + i + ".tif saved.")
     }
   }
 
   def openImage(): Unit = {
     val rawFrame = FpgaController.deviceController.getFrame
-    println(rawFrame.length)
-    Frame.show("a.tiff")
+    val frame = Frame.fromRaw(rawFrame)
+    frame.saveTiff(filePrefix.value + "_temp.tif")
+    Frame.show(filePrefix.value + "_temp.tif")
   }
 }

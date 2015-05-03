@@ -23,6 +23,16 @@ class DeviceController(device: DeviceInterface) {
     device.updateWireIns()
   }
 
+  def putFpgaOnReset(): Unit = {
+    putOnReset(systemReset)
+    putOnReset(clockReset)
+  }
+
+  def putOnReset(reset: Int): Unit = {
+    device.setWireInValue(resetWire, 0, 2 pow reset)
+    device.updateWireIns()
+  }
+
   private def setWiresAndTrigger(wires: Map[Int, Long]): Unit = {
     for (wire <- wires.keys) {
       device.setWireInValue(wire, wires(wire))
@@ -49,6 +59,7 @@ class DeviceController(device: DeviceInterface) {
       case 0xbf1 => throw new Exception("Flash not ready.")
       case 0xbf2 => throw new Exception("Invalid flash partition.")
       case 0xbf3 => throw new Exception("Imaging not enabled.")
+      case 0xeeee => throw new Exception("Device on reset.")
       case default => throw new Exception("Unexpected error code: " + default)
     }
   }
@@ -319,7 +330,11 @@ class DeviceController(device: DeviceInterface) {
     ))
     val frameSize = lineSize * numRows * 2
     val rawFrame = Array.ofDim[Byte](frameSize)
-    device.readFromBlockPipeOut(imageOutPipe, frameSize, rawFrame)
+    do {
+      device.updateWireOuts()
+      // TODO: Add actors/multithreading here to avoid busy waiting
+    } while (device.getWireOutValue(readyWire) != 0)
+    device.readFromPipeOut(imageOutPipe, frameSize, rawFrame)
     rawFrame
   }
 
@@ -339,6 +354,7 @@ object ApiConstants {
   val readWire = 0x20
   val errorWire = 0x21
   val statusWire = 0x22
+  val readyWire = 0x23
 
   val triggerWire = 0x40
 

@@ -14,6 +14,12 @@ class Measurement {
   def name = _name
   def name_=(that: String) = _name = that
 
+  @JsonProperty("netd")
+  val netd = Array.ofDim[Int](384 * 288)
+
+  @JsonProperty("dead")
+  val dead = Array.ofDim[Boolean](384 * 288)
+
   def save(fileName: String): Unit = {
     val file = new File(fileName)
     save(file)
@@ -25,7 +31,11 @@ class Measurement {
   }
 
   override def equals(o: Any) = o match {
-    case that: Measurement => that.name.equalsIgnoreCase(this.name)
+    case that: Measurement => {
+      that.name.equalsIgnoreCase(this.name) &&
+      that.netd.sameElements(this.netd) &&
+      that.dead.sameElements(this.dead)
+    }
     case _ => false
   }
   override def hashCode = name.toUpperCase.hashCode

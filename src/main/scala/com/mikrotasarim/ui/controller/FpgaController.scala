@@ -4,12 +4,14 @@ import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode}
 import com.mikrotasarim.api.command.DeviceController
 import com.mikrotasarim.api.device.{ConsoleMockDeviceInterface, OpalKellyInterface}
+import com.mikrotasarim.data.Measurement
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
 
 object FpgaController {
 
+  // TODO: Use of null is ugly. Replace with options, doing the necessary rework everywhere these are used.
   var deviceController: DeviceController = null
   var device: OpalKellyInterface = null
 
@@ -87,6 +89,7 @@ object FpgaController {
     } else {
       new DeviceController(new ConsoleMockDeviceInterface)
     }
+    deviceController.takeFpgaOffReset()
     deviceController.initializeRoic()
     deviceController.setTriggerMode(TriggerMode.Slave_Software)
     deviceController.setNucMode(NucMode.Enabled)
@@ -131,6 +134,7 @@ object FpgaController {
   }
 
   def disconnectFromFpga(): Unit = {
+    deviceController.putFpgaOnReset()
     deviceConnected.set(false)
   }
 }
