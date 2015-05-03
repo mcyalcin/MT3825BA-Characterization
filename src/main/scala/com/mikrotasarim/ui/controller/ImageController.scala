@@ -6,8 +6,8 @@ import scalafx.beans.property.StringProperty
 
 object ImageController {
 
-  val filePrefix = new StringProperty()
-  val sampleCount = new StringProperty()
+  val filePrefix = new StringProperty("")
+  val sampleCount = new StringProperty("")
 
   def saveImages(): Unit = {
     for (i <- 0 until sampleCount.value.toInt) {
@@ -28,7 +28,7 @@ object ImageController {
       (for (i <- 0 until 384 * 288) yield raw(2 * i) + raw(2 * i + 1) * 256).toArray
 
     def onePointCorrect(img: Array[Int]): Array[Int] =
-      (for (i <- 0 until 384 * 288) yield img(i) - MeasurementController.measurement.dark(i)).toArray
+      (for (i <- 0 until 384 * 288) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
 
     def twoPointCorrect(img: Array[Int]): Array[Int] =
       img // TODO: Implement

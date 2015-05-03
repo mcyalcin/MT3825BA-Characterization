@@ -89,6 +89,8 @@ object FpgaController {
       new DeviceController(new ConsoleMockDeviceInterface)
     }
     deviceController.takeFpgaOffReset()
+    deviceController.setReset()
+    deviceController.clearReset()
     deviceController.initializeRoic()
     deviceController.setTriggerMode(TriggerMode.Slave_Software)
     deviceController.setNucMode(NucMode.Enabled)

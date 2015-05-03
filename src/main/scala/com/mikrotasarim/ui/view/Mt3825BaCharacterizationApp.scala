@@ -1,7 +1,8 @@
 package com.mikrotasarim.ui.view
 
 import com.mikrotasarim.api.device.DeviceNotFoundException
-import com.mikrotasarim.ui.model.MemoryMap
+import com.mikrotasarim.ui.controller.{MeasurementController, ImageController}
+import com.mikrotasarim.ui.model.{Measurement, MemoryMap}
 import org.controlsfx.dialog.Dialogs
 
 import scalafx.Includes._
@@ -73,17 +74,21 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           selected <==> correctionEnabled
         },
         new RadioButton("1 point") {
-          disable <== !correctionEnabled
+          disable <== !correctionEnabled || !Measurement.darkImageSet
           selected <==> onePointCorrection
           toggleGroup = correctionMode
         },
         new RadioButton("2 point") {
-          disable <== !correctionEnabled
+          disable <== !correctionEnabled || !Measurement.slopeSet
           selected <==> twoPointCorrection
           toggleGroup = correctionMode
         },
-        new Button("Get Dark Image"),
-        new Button("Get Gray Image")
+        new Button("Get Dark Image") {
+          onAction = handle { MeasurementController.captureDarkImage() }
+        },
+        new Button("Get Gray Image") {
+          onAction = handle { MeasurementController.captureGrayImage() }
+        }
       )
     }
   }
