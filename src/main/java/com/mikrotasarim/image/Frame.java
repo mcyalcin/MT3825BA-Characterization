@@ -40,4 +40,8 @@ public class Frame {
         }
         return new Frame(pixelArray);
     }
+
+    public static Frame fromProcessed(int[] intArray) {
+        return new Frame(intArray);
+    }
 }

@@ -13,7 +13,7 @@ import scalafx.scene.layout._
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.control._
 
-import com.mikrotasarim.ui.model.FileControlModel._
+import com.mikrotasarim.ui.controller.ImageController._
 import com.mikrotasarim.ui.controller.FpgaController._
 
 object Mt3825BaCharacterizationApp extends JFXApp {

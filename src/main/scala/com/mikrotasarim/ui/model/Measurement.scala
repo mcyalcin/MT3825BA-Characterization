@@ -1,4 +1,4 @@
-package com.mikrotasarim.data
+package com.mikrotasarim.ui.model
 
 import java.io.File
 
@@ -20,6 +20,12 @@ class Measurement {
   @JsonProperty("dead")
   val dead = Array.ofDim[Boolean](384 * 288)
 
+  @JsonProperty("dark")
+  private var _dark = Array.ofDim[Int](384 * 288)
+
+  def dark = _dark
+  def dark_=(that: Array[Int]) = _dark = that
+
   def save(fileName: String): Unit = {
     val file = new File(fileName)
     save(file)
@@ -31,11 +37,11 @@ class Measurement {
   }
 
   override def equals(o: Any) = o match {
-    case that: Measurement => {
+    case that: Measurement =>
       that.name.equalsIgnoreCase(this.name) &&
       that.netd.sameElements(this.netd) &&
-      that.dead.sameElements(this.dead)
-    }
+      that.dead.sameElements(this.dead) &&
+      that.dark.sameElements(this.dark)
     case _ => false
   }
   override def hashCode = name.toUpperCase.hashCode

@@ -325,10 +325,22 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def getFrame: Array[Byte] = {
+    val fullFrame = getFullFrame
+
+    var clippedFrame = fullFrame.drop(392)
+
+    for (i <- 0 until 288) {
+      clippedFrame = clippedFrame.take(i * 384) ++ clippedFrame.drop(i * 384 + 8)
+    }
+
+    clippedFrame
+  }
+
+  def getFullFrame: Array[Byte] = {
     setWiresAndTrigger(Map(
       commandWire -> sFsynOpCode
     ))
-    val frameSize = lineSize * numRows * 2
+    val frameSize = 392 * 289 * 2
     val rawFrame = Array.ofDim[Byte](frameSize)
     do {
       device.updateWireOuts()

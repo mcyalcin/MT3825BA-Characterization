@@ -4,7 +4,6 @@ import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode}
 import com.mikrotasarim.api.command.DeviceController
 import com.mikrotasarim.api.device.{ConsoleMockDeviceInterface, OpalKellyInterface}
-import com.mikrotasarim.data.Measurement
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
 import scalafx.collections.ObservableBuffer

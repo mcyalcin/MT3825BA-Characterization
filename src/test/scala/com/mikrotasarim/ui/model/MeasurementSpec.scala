@@ -1,8 +1,8 @@
-package com.mikrotasarim.data
+package com.mikrotasarim.ui.model
 
 import java.io.File
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{Matchers, FlatSpec}
 
 class MeasurementSpec extends FlatSpec with Matchers {
 
