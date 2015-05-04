@@ -19,6 +19,35 @@ import com.mikrotasarim.ui.controller.FpgaController._
 
 object Mt3825BaCharacterizationApp extends JFXApp {
 
+  object MyUncaughtExceptionHandler extends Thread.UncaughtExceptionHandler {
+    // TODO: Expand this
+    def uncaughtException(thread: Thread, e: Throwable): Unit = e match {
+      case e: UnsatisfiedLinkError => Dialogs.create()
+        .title("Error")
+        .masthead("Unsatisfied Link")
+        .message("Opal Kelly driver not in java library path.")
+        .showException(e)
+      case e: DeviceNotFoundException => Dialogs.create()
+        .title("Device Not Found Exception")
+        .masthead("Device Not Found")
+        .message(e.getMessage)
+        .showException(e)
+      case e: Exception => Dialogs.create()
+        .title("Exception")
+        .masthead("Unhandled Exception")
+        .message(e.getMessage)
+        .showException(e)
+      case e: Error => Dialogs.create()
+        .title("Error")
+        .masthead("Unhandled Error")
+        .message(e.getMessage)
+        .showException(e)
+      case _ => println("???")
+    }
+  }
+
+  Thread.currentThread().setUncaughtExceptionHandler(MyUncaughtExceptionHandler)
+
   stage = new PrimaryStage {
     title = "Mikro-Tasarim MT3825BA Characterization App"
   }
