@@ -1,5 +1,6 @@
 package com.mikrotasarim.api.command
 
+import com.mikrotasarim.api.command.ApiConstants.ResistanceMeasurementMode.ResistanceMeasurementMode
 import com.mikrotasarim.api.device.DeviceInterface
 
 import spire.implicits._
@@ -354,6 +355,12 @@ class DeviceController(device: DeviceInterface) {
   def setAdcDelay(delay: Long): Unit = {
     device.setWireInValue(delayWire, delay)
   }
+
+  def setResistanceMeasurementMode(mode: ResistanceMeasurementMode): Unit {
+    setWireInsAndTrigger(Map(
+
+    ))
+  }
 }
 
 object ApiConstants {
@@ -415,6 +422,7 @@ object ApiConstants {
   val sDReROpCode = 0xb9
   val sTNucOpCode = 0xba
   val sPxMpOpCode = 0xbb
+  val sResMOpCode = 0xbe
   val disImOpCode = 0xe0
   val enbImOpCode = 0xe1
   val sFsynOpCode = 0xe2
@@ -432,5 +440,10 @@ object ApiConstants {
   object NucMode extends Enumeration {
     type NucMode = Value
     val Disabled, Enabled, Fixed = Value
+  }
+
+  object ResistanceMeasurementMode extends Enumeration {
+    type ResistanceMeasurementMode = Value
+    val Detector, Reference = Value
   }
 }
