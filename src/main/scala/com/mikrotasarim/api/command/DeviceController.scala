@@ -246,6 +246,9 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def writeToFlashMemory(line: Array[Byte], index: Int) = {
+    do{
+      device.updateWireOuts()
+    }while(device.getWireOutValue(statusWire) == 0)
     resetFlashInFifo()
     device.writeToPipeIn(flashFifoInPipe, line.length, line)
     setWiresAndTrigger(Map(
@@ -261,6 +264,9 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def eraseActiveFlashPartition(): Unit = {
+    do{
+      device.updateWireOuts()
+    }while(device.getWireOutValue(statusWire) == 0)
     setWiresAndTrigger(Map(
       commandWire -> eFPrtOpCode
     ))
@@ -352,7 +358,13 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def setAdcDelay(delay: Long): Unit = {
-    device.setWireInValue(delayWire, delay)
+    device.setWireInValue(delayWire, delay, 0x0000000F)
+  }
+  def setSamplingDelay(delay: Long): Unit = {
+    device.setWireInValue(delayWire, delay*16 , 0x000001F0)
+  }
+  def setTestMode(mode: Long): Unit = {
+    device.setWireInValue(delayWire, mode*512 , 0x00000200)
   }
 }
 
