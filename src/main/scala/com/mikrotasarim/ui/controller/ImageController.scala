@@ -46,8 +46,13 @@ object ImageController {
   }
 
   def getRawImage: Array[Int] = {
-    def combineBytes(raw: Array[Byte]): Array[Int] =
-      (for (i <- 0 until 384 * 288) yield raw(2 * i) + raw(2 * i + 1) * 256).toArray
+
+    def combineBytes(raw: Array[Byte]): Array[Int] = {
+      def unsigned(b: Byte): Int = {
+        (b.toInt + 256) % 256
+      }
+      (for (i <- 0 until 384 * 288) yield unsigned(raw(2 * i)) + unsigned(raw(2 * i + 1)) * 256).toArray
+    }
 
     val rawFrame = FpgaController.deviceController.getFrame
     combineBytes(rawFrame)
