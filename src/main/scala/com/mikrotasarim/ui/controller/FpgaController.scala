@@ -37,9 +37,10 @@ object FpgaController {
   )
   val selectedPartition = StringProperty("Partition 1")
 
-  selectedPartition.onChange(
+  selectedPartition.onChange({
     currentNucLabel.value = nucFrames(partitionToIndex(selectedPartition.value)).getOrElse(new NucFrame("", null, null)).name
-  )
+    deviceController.setActiveFlashPartition(partitionToIndex(selectedPartition.value))
+  })
 
   val partitionToIndex = Map(
     "Partition 1" -> 0,
@@ -129,6 +130,7 @@ object FpgaController {
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = idealNuc(i)
     }
+    deviceController.eraseActiveFlashPartition()
     deviceController.writeFrameToFlashMemory(frame)
     deviceController.setNucMode(NucMode.Enabled)
     nucFrames(partitionToIndex(selectedPartition.value)) = Some(new NucFrame(nucLabel.value, frame, deadPixels))
