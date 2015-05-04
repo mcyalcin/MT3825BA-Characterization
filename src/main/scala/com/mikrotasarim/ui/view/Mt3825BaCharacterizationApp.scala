@@ -144,7 +144,40 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  def netd: Node = new Button("NETD")
+  def netd: Node = {
+    def tempBox(label: Int): Node = new HBox {
+      spacing = 10
+      content = List (
+        new TextField {
+          prefColumnCount = 5
+          promptText = "Enter T" + label
+          text <==> MeasurementController.netdTemp(label)
+        },
+        new Button("Capture image at " + label) {
+          onAction = handle { MeasurementController.captureNetdImage(label) }
+        }
+      )
+    }
+
+    new VBox {
+      spacing = 10
+      content = List(
+        new TextField {
+          prefColumnCount = 5
+          text <==> MeasurementController.netdFrames
+          promptText = "# frames"
+        },
+        tempBox(0),
+        tempBox(1),
+        new Button("Measure NETD") {
+          disable <== !MeasurementController.t0Set || !MeasurementController.t1Set
+          onAction = handle {
+            MeasurementController.measureNetd()
+          }
+        }
+      )
+    }
+  }
 
   def resistorMap: Node = new Button("Resistor Map")
 
@@ -156,7 +189,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         text <==> MeasurementController.noiseFrames
         promptText = "# frames"
       },
-      new Button("Noise Histogram") {
+      new Button("Measure Noise") {
         onAction = handle {
           MeasurementController.measureNoise()
         }

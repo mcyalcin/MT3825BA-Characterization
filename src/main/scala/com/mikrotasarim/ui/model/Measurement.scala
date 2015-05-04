@@ -10,6 +10,42 @@ import org.apache.commons.io.FileUtils
 import scalafx.beans.property.{StringProperty, BooleanProperty}
 
 class Measurement {
+  @JsonProperty
+  private var _temp0: Double = 0
+
+  def temp0 = _temp0
+  def temp0_=(that:Double) = _temp0 = that
+
+  @JsonProperty
+  var _netdDevsT0:Array[Double] = Array.ofDim[Double](384*288)
+
+  def netdDevsT0 = _netdDevsT0
+  def netdDevsT0_=(that:Array[Double]) = _netdDevsT0 = that
+
+  @JsonProperty
+  private var _netdMeansT0:Array[Double] = Array.ofDim[Double](384*288)
+
+  def netdMeansT0 = _netdMeansT0
+  def netdMeansT0_=(that:Array[Double]) = _netdMeansT0 = that
+
+  @JsonProperty
+  private var _temp1: Double = 0
+
+  def temp1 = _temp1
+  def temp1_=(that:Double) = _temp1 = that
+
+  @JsonProperty
+  var _netdDevsT1:Array[Double] = Array.ofDim[Double](384*288)
+
+  def netdDevsT1 = _netdDevsT1
+  def netdDevsT1_=(that:Array[Double]) = _netdDevsT1 = that
+
+  @JsonProperty
+  private var _netdMeansT1:Array[Double] = Array.ofDim[Double](384*288)
+
+  def netdMeansT1 = _netdMeansT1
+  def netdMeansT1_=(that:Array[Double]) = _netdMeansT1 = that
+
   def calculateSlope(): Unit = {
     if (graySet && darkSet) {
       val avg = (for (i <- 0 until 384 * 288) yield Seq(gray(i) - dark(i), 0).max).sum.toDouble / (384*288)
@@ -30,8 +66,19 @@ class Measurement {
 
   def name_=(that: String) = _name = that
 
-  @JsonProperty("netd")
-  val netd = Array.ofDim[Int](384 * 288)
+  @JsonProperty("netd0")
+  private var _netd0 = Array.ofDim[Double](384 * 288)
+
+  def netd0 = _netd0
+
+  def netd0_=(that: Array[Double]) = _netd0 = that
+
+  @JsonProperty("netd1")
+  private var _netd1 = Array.ofDim[Double](384 * 288)
+
+  def netd1 = _netd1
+
+  def netd1_=(that: Array[Double]) = _netd1 = that
 
   @JsonProperty("dead")
   private var _dead = Array.ofDim[Boolean](384 * 288)
@@ -106,12 +153,13 @@ class Measurement {
   override def equals(o: Any) = o match {
     case that: Measurement =>
       that.name.equalsIgnoreCase(this.name) &&
-        that.netd.sameElements(this.netd) &&
+        that.netd0.sameElements(this.netd0) &&
         that.dead.sameElements(this.dead) &&
         that.dark.sameElements(this.dark) &&
         that.slope.sameElements(this.slope)
     case _ => false
   }
+  // TODO: Implement correctly.
 
   override def hashCode = name.toUpperCase.hashCode
 
@@ -130,6 +178,7 @@ object Measurement {
     JacksMapper.readValue[Measurement](json)
   }
 
+  // TODO: Move these to MeasurementController. Let only the persistence methods remain here.
   val darkImageSet = BooleanProperty(value = false)
   val slopeSet = BooleanProperty(value = false)
   val name = StringProperty("")
