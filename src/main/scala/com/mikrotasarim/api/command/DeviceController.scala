@@ -118,10 +118,11 @@ class DeviceController(device: DeviceInterface) {
     ))
   }
 
-  def setIntegrationTime(time: Long): Unit = {
+  def setIntegrationTime(clockCycles: Long): Unit = {
+    // Operating clock speed is 3 MHz.
     setWiresAndTrigger(Map(
-      commandWire -> sIntTOpCode,
-      dataWire -> time
+      commandWire -> stIntOpCode,
+      dataWire -> clockCycles
     ))
     updateRoicMemory()
   }
@@ -329,8 +330,8 @@ class DeviceController(device: DeviceInterface) {
 
     var clippedFrame = fullFrame.drop(392 * 2)
 
-    for (i <- 0 until 288 * 2) {
-      clippedFrame = clippedFrame.take(i * 384) ++ clippedFrame.drop(i * 384 + 8)
+    for (i <- 0 until 288) {
+      clippedFrame = clippedFrame.take(i * 384 * 2 + 384 * 2) ++ clippedFrame.drop(i * 384 * 2 + 392 * 2)
     }
 
     clippedFrame
@@ -396,7 +397,7 @@ object ApiConstants {
   val sPixGOpCode = 0xc6
   val sMirMOpCode = 0xc7
   val sOutMOpCode = 0xc8
-  val sIntTOpCode = 0xc9
+  val stIntOpCode = 0xc9
   val stFrmOpCode = 0xca
   val uRoicOpCode = 0xcb
   val sVRefOpCode = 0xcc
