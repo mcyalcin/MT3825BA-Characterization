@@ -84,10 +84,14 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           toggleGroup = correctionMode
         },
         new Button("Get Dark Image") {
-          onAction = handle { MeasurementController.captureDarkImage() }
+          onAction = handle {
+            MeasurementController.captureDarkImage()
+          }
         },
         new Button("Get Gray Image") {
-          onAction = handle { MeasurementController.captureGrayImage() }
+          onAction = handle {
+            MeasurementController.captureGrayImage()
+          }
         }
       )
     }
@@ -144,15 +148,20 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def resistorMap: Node = new Button("Resistor Map")
 
-  def noise: Node = {
-    new TextField {
-      prefColumnCount = 5
-      text <==> MeasurementController.noiseFrames
-      promptText = "# frames"
-    }
-    new Button("Noise Histogram") {
-      onAction = handle { MeasurementController.measureNoise() }
-    }
+  def noise: Node = new VBox {
+    spacing = 10
+    content = List(
+      new TextField {
+        prefColumnCount = 5
+        text <==> MeasurementController.noiseFrames
+        promptText = "# frames"
+      },
+      new Button("Noise Histogram") {
+        onAction = handle {
+          MeasurementController.measureNoise()
+        }
+      }
+    )
   }
 
   def responsivity: Node = new Button("Responsivity")
