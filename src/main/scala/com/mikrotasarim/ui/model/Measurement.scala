@@ -87,6 +87,12 @@ class Measurement {
     Measurement.slopeSet.set(that)
   }
 
+  @JsonProperty("noise")
+  private var _noise = Array.ofDim[Double](384*288)
+
+  def noise = _noise
+  def noise_=(that: Array[Double]) = _noise = that
+
   def save(fileName: String): Unit = {
     val file = new File(fileName)
     save(file)

@@ -144,7 +144,16 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def resistorMap: Node = new Button("Resistor Map")
 
-  def noise: Node = new Button("Noise Histogram")
+  def noise: Node = {
+    new TextField {
+      prefColumnCount = 5
+      text <==> MeasurementController.noiseFrames
+      promptText = "# frames"
+    }
+    new Button("Noise Histogram") {
+      onAction = handle { MeasurementController.measureNoise() }
+    }
+  }
 
   def responsivity: Node = new Button("Responsivity")
 

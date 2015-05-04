@@ -24,8 +24,6 @@ object ImageController {
   }
 
   def getImage: Array[Int] = {
-    def combineBytes(raw: Array[Byte]): Array[Int] =
-      (for (i <- 0 until 384 * 288) yield raw(2 * i) + raw(2 * i + 1) * 256).toArray
 
     def onePointCorrect(img: Array[Int]): Array[Int] =
       (for (i <- 0 until 384 * 288) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
@@ -36,8 +34,7 @@ object ImageController {
           Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toInt).toArray
     }
 
-    val rawFrame = FpgaController.deviceController.getFrame
-    val frame = combineBytes(rawFrame)
+    val frame = getRawImage
 
     val correctedFrame =
       if (FpgaController.correctionEnabled.value)
@@ -46,5 +43,13 @@ object ImageController {
       else frame
 
     correctedFrame
+  }
+
+  def getRawImage: Array[Int] = {
+    def combineBytes(raw: Array[Byte]): Array[Int] =
+      (for (i <- 0 until 384 * 288) yield raw(2 * i) + raw(2 * i + 1) * 256).toArray
+
+    val rawFrame = FpgaController.deviceController.getFrame
+    combineBytes(rawFrame)
   }
 }
