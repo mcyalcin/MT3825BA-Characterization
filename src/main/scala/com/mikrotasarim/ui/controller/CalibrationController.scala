@@ -64,7 +64,7 @@ object CalibrationController {
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until 10) yield frameSet(j)(i)).sum.toDouble / 10 - 8192)
     }
-    val deadPixels = Array.ofDim[Boolean](384*288)
+    val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
       var min = nucCalibrationDistances(0)(i)
       var minIndex = 0

@@ -128,7 +128,7 @@ object MeasurementController {
 
     dc.setReset()
     dc.clearReset()
-    dc.updateReferenceData(Array.ofDim[Byte](384*2))
+    dc.updateReferenceData(Array.ofDim[Byte](384 * 2))
     dc.initializeRoic()
     dc.setResistanceMeasurementMode(ResistanceMeasurementMode.Detector)
     dc.setIntegrationTime(30)
@@ -191,10 +191,10 @@ object MeasurementController {
     val deltaV = for (i <- 0 until f1.length) yield f1(i) - f3(i)
 
     import spire.implicits._
-    val tint:Double = 10 pow -6
-    val cint:Double = (10 pow -12) * 31
+    val tint: Double = 10 pow -6
+    val cint: Double = (10 pow -12) * 31
     val k: Double = 270.0
-    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i)/(s1(i)-s2(i)))-(k/deltaV(i)))
+    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i) / (s1(i) - s2(i))) - (k / deltaV(i)))
 
     measurement.resistorMap = r.toArray
   }

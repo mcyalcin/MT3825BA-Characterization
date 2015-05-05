@@ -11,61 +11,69 @@ import scalafx.beans.property.{StringProperty, BooleanProperty}
 
 class Measurement {
   @JsonProperty
-  private var _resistorMap: Array[Double] = Array.ofDim[Double](384*288)
+  private var _resistorMap: Array[Double] = Array.ofDim[Double](384 * 288)
 
   def resistorMap = _resistorMap
+
   def resistorMap_=(that: Array[Double]) = _resistorMap = that
 
   @JsonProperty
-  private var _responsivity: Array[Double] = Array.ofDim[Double](384*288)
+  private var _responsivity: Array[Double] = Array.ofDim[Double](384 * 288)
 
   def responsivity = _responsivity
+
   def responsivity_=(that: Array[Double]) = _responsivity = that
 
   @JsonProperty
   private var _temp0: Double = 0
 
   def temp0 = _temp0
-  def temp0_=(that:Double) = _temp0 = that
+
+  def temp0_=(that: Double) = _temp0 = that
 
   @JsonProperty
-  var _netdDevsT0:Array[Double] = Array.ofDim[Double](384*288)
+  var _netdDevsT0: Array[Double] = Array.ofDim[Double](384 * 288)
 
   def netdDevsT0 = _netdDevsT0
-  def netdDevsT0_=(that:Array[Double]) = _netdDevsT0 = that
+
+  def netdDevsT0_=(that: Array[Double]) = _netdDevsT0 = that
 
   @JsonProperty
-  private var _netdMeansT0:Array[Double] = Array.ofDim[Double](384*288)
+  private var _netdMeansT0: Array[Double] = Array.ofDim[Double](384 * 288)
 
   def netdMeansT0 = _netdMeansT0
-  def netdMeansT0_=(that:Array[Double]) = _netdMeansT0 = that
+
+  def netdMeansT0_=(that: Array[Double]) = _netdMeansT0 = that
 
   @JsonProperty
   private var _temp1: Double = 0
 
   def temp1 = _temp1
-  def temp1_=(that:Double) = _temp1 = that
+
+  def temp1_=(that: Double) = _temp1 = that
 
   @JsonProperty
-  var _netdDevsT1:Array[Double] = Array.ofDim[Double](384*288)
+  var _netdDevsT1: Array[Double] = Array.ofDim[Double](384 * 288)
 
   def netdDevsT1 = _netdDevsT1
-  def netdDevsT1_=(that:Array[Double]) = _netdDevsT1 = that
+
+  def netdDevsT1_=(that: Array[Double]) = _netdDevsT1 = that
 
   @JsonProperty
-  private var _netdMeansT1:Array[Double] = Array.ofDim[Double](384*288)
+  private var _netdMeansT1: Array[Double] = Array.ofDim[Double](384 * 288)
 
   def netdMeansT1 = _netdMeansT1
-  def netdMeansT1_=(that:Array[Double]) = _netdMeansT1 = that
+
+  def netdMeansT1_=(that: Array[Double]) = _netdMeansT1 = that
 
   def calculateSlope(): Unit = {
     if (graySet && darkSet) {
-      val avg = (for (i <- 0 until 384 * 288) yield Seq(gray(i) - dark(i), 0).max).sum.toDouble / (384*288)
+      val avg = (for (i <- 0 until 384 * 288) yield Seq(gray(i) - dark(i), 0).max).sum.toDouble / (384 * 288)
       // TODO: Implement rejection rules and dead pixel marking here if necessary
-//      if (avg < 100) {
-//        slopeSet = false
-//        throw new Exception("Gray and Dark images are too close to calculate slope.")
-//      }
+      //      if (avg < 100) {
+      //        slopeSet = false
+      //        throw new Exception("Gray and Dark images are too close to calculate slope.")
+      //      }
       slope = (for (i <- 0 until 384 * 288) yield avg / (gray(i) - dark(i)).toDouble).toArray
       slopeSet = true
     }
@@ -96,6 +104,7 @@ class Measurement {
   private var _dead = Array.ofDim[Boolean](384 * 288)
 
   def dead = _dead
+
   def dead_=(that: Array[Boolean]) = _dead = that
 
   @JsonProperty("dark")
@@ -147,9 +156,10 @@ class Measurement {
   }
 
   @JsonProperty("noise")
-  private var _noise = Array.ofDim[Double](384*288)
+  private var _noise = Array.ofDim[Double](384 * 288)
 
   def noise = _noise
+
   def noise_=(that: Array[Double]) = _noise = that
 
   def save(fileName: String): Unit = {
@@ -171,6 +181,7 @@ class Measurement {
         that.slope.sameElements(this.slope)
     case _ => false
   }
+
   // TODO: Implement correctly.
 
   override def hashCode = name.toUpperCase.hashCode

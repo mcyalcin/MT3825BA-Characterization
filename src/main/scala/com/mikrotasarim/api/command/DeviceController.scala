@@ -461,4 +461,5 @@ object ApiConstants {
     type NucMode = Value
     val Disabled, Enabled, Fixed = Value
   }
+
 }
