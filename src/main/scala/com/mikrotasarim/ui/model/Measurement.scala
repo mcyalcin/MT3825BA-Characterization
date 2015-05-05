@@ -11,6 +11,18 @@ import scalafx.beans.property.{StringProperty, BooleanProperty}
 
 class Measurement {
   @JsonProperty
+  private var _resistorMap: Array[Double] = Array.ofDim[Double](384*288)
+
+  def resistorMap = _resistorMap
+  def resistorMap_=(that: Array[Double]) = _resistorMap = that
+
+  @JsonProperty
+  private var _responsivity: Array[Double] = Array.ofDim[Double](384*288)
+
+  def responsivity = _responsivity
+  def responsivity_=(that: Array[Double]) = _responsivity = that
+
+  @JsonProperty
   private var _temp0: Double = 0
 
   def temp0 = _temp0

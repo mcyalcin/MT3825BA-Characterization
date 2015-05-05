@@ -35,6 +35,12 @@ class DeviceController(device: DeviceInterface) {
   }
 
   private def setWiresAndTrigger(wires: Map[Int, Long]): Unit = {
+    def waitForDeviceReady(): Unit = {
+      do {
+        device.updateWireOuts()
+      } while (device.getWireOutValue(statusWire) != 0)
+    }
+    waitForDeviceReady()
     for (wire <- wires.keys) {
       device.setWireInValue(wire, wires(wire))
     }
@@ -238,7 +244,7 @@ class DeviceController(device: DeviceInterface) {
     device.setWireInValue(resetWire, 2 pow flashFifoOutReset, 2 pow flashFifoOutReset)
     device.updateWireIns()
   }
-  
+
   private def resetFlashInFifo(): Unit = {
     device.setWireInValue(resetWire, 0, 2 pow flashFifoInReset)
     device.updateWireIns()
@@ -247,9 +253,6 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def writeToFlashMemory(line: Array[Byte], index: Int) = {
-    do{
-      device.updateWireOuts()
-    }while(device.getWireOutValue(statusWire) == 0)
     resetFlashInFifo()
     device.writeToPipeIn(flashFifoInPipe, line.length, line)
     setWiresAndTrigger(Map(
@@ -265,9 +268,6 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def eraseActiveFlashPartition(): Unit = {
-    do{
-      device.updateWireOuts()
-    }while(device.getWireOutValue(statusWire) == 0)
     setWiresAndTrigger(Map(
       commandWire -> eFPrtOpCode
     ))
@@ -283,7 +283,7 @@ class DeviceController(device: DeviceInterface) {
 
   def sendReferenceDataToRoic(): Unit = {
     setWiresAndTrigger(Map(
-     commandWire -> sDReROpCode
+      commandWire -> sDReROpCode
     ))
   }
 
@@ -361,16 +361,19 @@ class DeviceController(device: DeviceInterface) {
   def setAdcDelay(delay: Long): Unit = {
     device.setWireInValue(delayWire, delay, 0x0000000F)
   }
+
   def setSamplingDelay(delay: Long): Unit = {
-    device.setWireInValue(delayWire, delay*16 , 0x000001F0)
+    device.setWireInValue(delayWire, delay * 16, 0x000001F0)
   }
+
   def setTestMode(mode: Long): Unit = {
-    device.setWireInValue(delayWire, mode*512 , 0x00000200)
+    device.setWireInValue(delayWire, mode * 512, 0x00000200)
   }
 
-  def setResistanceMeasurementMode(mode: ResistanceMeasurementMode): Unit {
-    setWireInsAndTrigger(Map(
-
+  def setResistanceMeasurementMode(mode: ResistanceMeasurementMode): Unit = {
+    setWiresAndTrigger(Map(
+      commandWire -> sResMOpCode,
+      dataWire -> mode.id
     ))
   }
 }
@@ -449,13 +452,13 @@ object ApiConstants {
     val NoMirroring, X_Mirror, Y_Mirror, XY_Mirror = Value
   }
 
-  object NucMode extends Enumeration {
-    type NucMode = Value
-    val Disabled, Enabled, Fixed = Value
-  }
-
   object ResistanceMeasurementMode extends Enumeration {
     type ResistanceMeasurementMode = Value
     val Detector, Reference = Value
+  }
+
+  object NucMode extends Enumeration {
+    type NucMode = Value
+    val Disabled, Enabled, Fixed = Value
   }
 }

@@ -1,7 +1,10 @@
 package com.mikrotasarim.ui.view
 
 import com.mikrotasarim.api.device.DeviceNotFoundException
-import com.mikrotasarim.ui.controller.{MeasurementController, ImageController}
+import com.mikrotasarim.ui.controller.CalibrationController._
+import com.mikrotasarim.ui.controller.FpgaController._
+import com.mikrotasarim.ui.controller.ImageController._
+import com.mikrotasarim.ui.controller.MeasurementController
 import com.mikrotasarim.ui.model.{Measurement, MemoryMap}
 import org.controlsfx.dialog.Dialogs
 
@@ -10,12 +13,9 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.StringProperty
 import scalafx.geometry.Insets
+import scalafx.scene.control._
 import scalafx.scene.layout._
 import scalafx.scene.{Node, Scene}
-import scalafx.scene.control._
-
-import com.mikrotasarim.ui.controller.ImageController._
-import com.mikrotasarim.ui.controller.FpgaController._
 
 object Mt3825BaCharacterizationApp extends JFXApp {
 
@@ -166,9 +166,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         new Separator,
         resistorMap,
         new Separator,
-        noise,
-        new Separator,
-        responsivity
+        noise
       )
     }
   }
@@ -176,14 +174,16 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def netd: Node = {
     def tempBox(label: Int): Node = new HBox {
       spacing = 10
-      content = List (
+      content = List(
         new TextField {
           prefColumnCount = 5
           promptText = "Enter T" + label
           text <==> MeasurementController.netdTemp(label)
         },
         new Button("Capture image at " + label) {
-          onAction = handle { MeasurementController.captureNetdImage(label) }
+          onAction = handle {
+            MeasurementController.captureNetdImage(label)
+          }
         }
       )
     }
@@ -203,12 +203,24 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           onAction = handle {
             MeasurementController.measureNetd()
           }
-        }
+        },
+        responsivity
       )
     }
   }
 
-  def resistorMap: Node = new Button("Resistor Map")
+  def responsivity: Node = new Button("Measure Responsivity") {
+    disable <== !MeasurementController.t0Set || !MeasurementController.t1Set
+    onAction = handle {
+      MeasurementController.measureResponsivity()
+    }
+  }
+
+  def resistorMap: Node = new Button("Resistor Map") {
+    onAction = handle {
+      MeasurementController.createResistorMap()
+    }
+  }
 
   def noise: Node = new VBox {
     spacing = 10
@@ -225,8 +237,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       }
     )
   }
-
-  def responsivity: Node = new Button("Responsivity")
 
   def imageControlPanel: Node = new ScrollPane {
     content = new VBox {
@@ -354,30 +364,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def connectButton: Node = new Button("Connect") {
     disable <== deviceConnected
     onAction = handle {
-      try {
-        connectToFpga()
-      } catch {
-        case e: UnsatisfiedLinkError => Dialogs.create()
-          .title("Error")
-          .masthead("Unsatisfied Link")
-          .message("Opal Kelly driver not in java library path.")
-          .showException(e)
-        case e: DeviceNotFoundException => Dialogs.create()
-          .title("Device Not Found Exception")
-          .masthead("Device Not Found")
-          .message(e.getMessage)
-          .showException(e)
-        case e: Exception => Dialogs.create()
-          .title("Exception")
-          .masthead("Unhandled Exception")
-          .message(e.getMessage)
-          .showException(e)
-        case e: Error => Dialogs.create()
-          .title("Error")
-          .masthead("Unhandled Error")
-          .message(e.getMessage)
-          .showException(e)
-      }
+      connectToFpga()
     }
   }
 
