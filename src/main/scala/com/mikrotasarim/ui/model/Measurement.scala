@@ -168,8 +168,30 @@ class Measurement {
   }
 
   def save(file: File): Unit = {
+    def divideToLines(source: Array[Double]): Array[Array[Double]] = {
+      val result = Array.ofDim[Array[Double]](288)
+      for (i <- 0 until 288) {
+        result(i) = source.drop(i * 384).take(384)
+      }
+      result
+    }
     val json = JacksMapper.writeValueAsString[Measurement](this)
+    val noiseCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.noise)).replaceAll("]", "\n")
+    val netd0Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd0)).replaceAll("]", "\n")
+    val netd1Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd1)).replaceAll("]", "\n")
+    val resistorMapCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.resistorMap)).replaceAll("]", "\n")
+    val responsivityCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.responsivity)).replaceAll("]", "\n")
+    val dead = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.dead.map(b => if (b) 1.0 else 0.0))).replaceAll("]", "\n")
+
     FileUtils.write(file, json, "UTF-8")
+    val blaFile = new File(name + File.separator + "bla.csv")
+    blaFile.getParentFile.mkdir
+    FileUtils.write(new File(name + File.separator + "noise.csv"), noiseCsv, "UTF-8")
+    FileUtils.write(new File(name + File.separator + "netd0.csv"), netd0Csv, "UTF-8")
+    FileUtils.write(new File(name + File.separator + "netd1.csv"), netd1Csv, "UTF-8")
+    FileUtils.write(new File(name + File.separator + "resistorMap.csv"), resistorMapCsv, "UTF-8")
+    FileUtils.write(new File(name + File.separator + "responsivity.csv"), responsivityCsv, "UTF-8")
+    FileUtils.write(new File(name + File.separator + "deadPixels.csv"), dead, "UTF-8")
   }
 
   override def equals(o: Any) = o match {

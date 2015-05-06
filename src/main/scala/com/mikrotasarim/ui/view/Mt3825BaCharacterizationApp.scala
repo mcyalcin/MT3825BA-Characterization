@@ -385,7 +385,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   def saveButton: Node = new Button("Save Results") {
-    MeasurementController.measurement.save("result.json")
+    onAction = handle { MeasurementController.measurement.save("result.json") }
     // TODO: Add file selector for saving results
   }
 

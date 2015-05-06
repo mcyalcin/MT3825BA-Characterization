@@ -39,7 +39,7 @@ object FpgaController {
   def connectToFpga(): Unit = {
     deviceController = if (!isSelfTest.value) {
       if (device == null) {
-        device = new OpalKellyInterface("guy.bit")
+        device = new OpalKellyInterface("/home/mcyalcin/Desktop/guy.bit")
       }
       new DeviceController(device)
     } else {
@@ -48,9 +48,14 @@ object FpgaController {
     deviceController.takeFpgaOffReset()
     deviceController.setReset()
     deviceController.clearReset()
+    deviceController.disableImagingMode()
     deviceController.initializeRoic()
+    deviceController.setNucMode(NucMode.Fixed,255)
+    deviceController.sendReferenceDataToRoic()
     deviceController.setTriggerMode(TriggerMode.Slave_Software)
     deviceController.setNucMode(NucMode.Enabled)
+    deviceController.setAdcDelay(3)
+    deviceController.setSamplingDelay(4)
     deviceController.enableImagingMode()
     deviceConnected.set(true)
   }

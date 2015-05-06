@@ -9,7 +9,7 @@ import scalafx.collections.ObservableBuffer
 
 object CalibrationController {
 
-  val dc: DeviceController = FpgaController.deviceController
+  def dc: DeviceController = FpgaController.deviceController
 
   val globalReferenceBias = IntegerProperty(0)
   val pixelBiasRange = IntegerProperty(0)
@@ -74,14 +74,15 @@ object CalibrationController {
   def calculateAndApplyNuc(): Unit = {
     val nucCalibrationDistances = for (i <- 0 to 63) yield {
       FpgaController.deviceController.setNucMode(NucMode.Fixed, i)
-      val frameSet = for (i <- 0 until 10) yield {
+      val numFrames = 2
+      val frameSet = for (i <- 0 until numFrames) yield {
         val rawFrame = FpgaController.deviceController.getFrame
         for (i <- 0 until 384 * 288) yield {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
       for (i <- 0 until 384 * 288) yield
-        math.abs((for (j <- 0 until 10) yield frameSet(j)(i)).sum.toDouble / 10 - 8192)
+        math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
     val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
