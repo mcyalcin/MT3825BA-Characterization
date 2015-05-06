@@ -8,15 +8,24 @@ import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
 
 object CalibrationController {
-  def resetIntegrationTime(): Unit = globalReferenceBias.set(2563)
+  def resetIntegrationTime(): Unit = {
+    integrationTime.set(64)
+    applyIntegrationTime()
+  }
 
   def applyIntegrationTime(): Unit = dc.setIntegrationTime(integrationTime.value * 3)
 
-  def resetPixelBiasRange(): Unit = pixelBiasRange.set(55)
+  def resetPixelBiasRange(): Unit = {
+    pixelBiasRange.set(55)
+    applyPixelBiasRange()
+  }
 
   def applyPixelBiasRange(): Unit = dc.setPixelBiasRange(4096 * pixelBiasRange.value / 1500)
 
-  def resetGlobalReferenceBias(): Unit = integrationTime.set(64)
+  def resetGlobalReferenceBias(): Unit = {
+    globalReferenceBias.set(2563)
+    applyGlobalReferenceBias()
+  }
 
   def applyGlobalReferenceBias(): Unit = dc.setGlobalReferenceBias(4096 * globalReferenceBias.value / 3000)
 
