@@ -2,11 +2,30 @@ package com.mikrotasarim.ui.controller
 
 import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.NucMode
+import com.mikrotasarim.api.command.DeviceController
 
-import scalafx.beans.property.StringProperty
+import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
 
 object CalibrationController {
+
+  val dc: DeviceController = FpgaController.deviceController
+
+  val globalReferenceBias = IntegerProperty(0)
+  val pixelBiasRange = IntegerProperty(0)
+  val integrationTime = IntegerProperty(0)
+
+  globalReferenceBias.onChange(
+    dc.setGlobalReferenceBias(65536 * globalReferenceBias.value / 3000)
+  )
+
+  pixelBiasRange.onChange(
+    dc.setPixelBiasRange(65536 * pixelBiasRange.value / 1500)
+  )
+
+  integrationTime.onChange(
+    dc.setIntegrationTime(integrationTime.value * 3) // Mapping assumes 3MHz clock speed
+  )
 
   val flashPartitions = ObservableBuffer(List(
     "Partition 1",
@@ -27,7 +46,7 @@ object CalibrationController {
 
   selectedPartition.onChange({
     currentNucLabel.value = nucFrames(partitionToIndex(selectedPartition.value)).getOrElse(new NucFrame("", null, null)).name
-    FpgaController.deviceController.disableImagingMode()
+    dc.disableImagingMode()
     FpgaController.deviceController.setActiveFlashPartition(partitionToIndex(selectedPartition.value))
     FpgaController.deviceController.enableImagingMode()
   })

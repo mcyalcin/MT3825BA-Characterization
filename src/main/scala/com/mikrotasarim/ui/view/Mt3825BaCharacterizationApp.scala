@@ -4,14 +4,14 @@ import com.mikrotasarim.api.device.DeviceNotFoundException
 import com.mikrotasarim.ui.controller.CalibrationController._
 import com.mikrotasarim.ui.controller.FpgaController._
 import com.mikrotasarim.ui.controller.ImageController._
-import com.mikrotasarim.ui.controller.MeasurementController
+import com.mikrotasarim.ui.controller.{CalibrationController, MeasurementController}
 import com.mikrotasarim.ui.model.{Measurement, MemoryMap}
 import org.controlsfx.dialog.Dialogs
 
 import scalafx.Includes._
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
-import scalafx.beans.property.StringProperty
+import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.geometry.Insets
 import scalafx.scene.control._
 import scalafx.scene.layout._
@@ -89,10 +89,43 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       content = List(
         nucControls,
         new Separator,
-        correctionControls
+        correctionControls,
+        new Separator,
+        globalReferenceBiasSlider,
+        pixelBiasSlider,
+        integrationTimeSlider
       )
     }
   }
+
+  def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String): Node =
+    new HBox {
+      spacing = 10
+      content = List(
+        new Label(label){
+          prefWidth = 175
+        },
+        new Slider {
+          prefWidth = 200
+          min = mini
+          max = maxi
+          value <==> model
+          snapToTicks = true
+          blockIncrement = increment
+          majorTickUnit = increment
+        },
+        new Label {
+          text <== model.asString + " " + unitLabel
+          prefWidth = 100
+        }
+      )
+    }
+
+  def globalReferenceBiasSlider = labeledSnappingSliderGroup("Global Reference Bias", CalibrationController.globalReferenceBias, 0, 3000, 1, "mV")
+
+  def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV")
+
+  def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "us")
 
   def correctionControls: Node = {
     val correctionMode = new ToggleGroup
