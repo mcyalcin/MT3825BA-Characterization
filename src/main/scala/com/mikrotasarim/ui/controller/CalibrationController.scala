@@ -3,6 +3,7 @@ package com.mikrotasarim.ui.controller
 import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.NucMode
 import com.mikrotasarim.api.command.DeviceController
+import com.mikrotasarim.image.Frame
 
 import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
@@ -81,15 +82,21 @@ object CalibrationController {
   val currentNucLabel = StringProperty("")
 
   def calculateAndApplyNuc(): Unit = {
+    val dc = FpgaController.deviceController
     val nucCalibrationDistances = for (i <- 0 to 63) yield {
-      FpgaController.deviceController.setNucMode(NucMode.Fixed, i)
+      dc.disableImagingMode()
+      dc.setNucMode(NucMode.Fixed, i + 192)
+      dc.enableImagingMode()
       val numFrames = 2
       val frameSet = for (i <- 0 until numFrames) yield {
-        val rawFrame = FpgaController.deviceController.getFrame
+        val rawFrame = dc.getFrame
         for (i <- 0 until 384 * 288) yield {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
+      val bas = Frame.fromProcessed(frameSet(0).toArray)
+      bas.saveTiff("/home/mcyalcin/Desktop/nuc" + i + ".tif")
+      Frame.show("/home/mcyalcin/Desktop/nuc" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
@@ -97,7 +104,7 @@ object CalibrationController {
     val idealNuc = for (i <- 0 until 384 * 288) yield {
       var min = nucCalibrationDistances(0)(i)
       var minIndex = 0
-      for (j <- 1 until 63) {
+      for (j <- 1 to 63) {
         if (nucCalibrationDistances(j)(i) < min) {
           min = nucCalibrationDistances(j)(i)
           minIndex = j
@@ -107,15 +114,18 @@ object CalibrationController {
       minIndex
     }.toByte
     MeasurementController.measurement.dead = deadPixels
+    val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
+    nucFrame.saveTiff("/home/mcyalcin/Desktop/nucFrame.tif")
+    Frame.show("/home/mcyalcin/Desktop/nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
-      frame(i / 384)(i % 384) = idealNuc(i)
+      frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte
     }
-    FpgaController.deviceController.disableImagingMode()
-    FpgaController.deviceController.eraseActiveFlashPartition()
-    FpgaController.deviceController.writeFrameToFlashMemory(frame)
-    FpgaController.deviceController.setNucMode(NucMode.Enabled)
-    FpgaController.deviceController.enableImagingMode()
+    dc.disableImagingMode()
+    dc.eraseActiveFlashPartition()
+    dc.writeFrameToFlashMemory(frame)
+    dc.setNucMode(NucMode.Enabled)
+    dc.enableImagingMode()
     nucFrames(partitionToIndex(selectedPartition.value)) = Some(new NucFrame(nucLabel.value, frame, deadPixels))
     currentNucLabel.value = nucLabel.value
     nucLabel.value = ""
