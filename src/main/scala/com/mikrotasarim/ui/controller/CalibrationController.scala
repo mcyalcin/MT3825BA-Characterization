@@ -8,24 +8,24 @@ import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
 
 object CalibrationController {
+  def resetIntegrationTime(): Unit = globalReferenceBias.set(2563)
+
+  def applyIntegrationTime(): Unit = dc.setIntegrationTime(integrationTime.value * 3)
+
+  def resetPixelBiasRange(): Unit = pixelBiasRange.set(55)
+
+  def applyPixelBiasRange(): Unit = dc.setPixelBiasRange(4096 * pixelBiasRange.value / 1500)
+
+  def resetGlobalReferenceBias(): Unit = integrationTime.set(64)
+
+  def applyGlobalReferenceBias(): Unit = dc.setGlobalReferenceBias(4096 * globalReferenceBias.value / 3000)
+
 
   def dc: DeviceController = FpgaController.deviceController
 
-  val globalReferenceBias = IntegerProperty(0)
-  val pixelBiasRange = IntegerProperty(0)
-  val integrationTime = IntegerProperty(0)
-
-  globalReferenceBias.onChange(
-    dc.setGlobalReferenceBias(65536 * globalReferenceBias.value / 3000)
-  )
-
-  pixelBiasRange.onChange(
-    dc.setPixelBiasRange(65536 * pixelBiasRange.value / 1500)
-  )
-
-  integrationTime.onChange(
-    dc.setIntegrationTime(integrationTime.value * 3) // Mapping assumes 3MHz clock speed
-  )
+  val globalReferenceBias = IntegerProperty(2563)
+  val pixelBiasRange = IntegerProperty(55)
+  val integrationTime = IntegerProperty(64)
 
   val flashPartitions = ObservableBuffer(List(
     "Partition 1",

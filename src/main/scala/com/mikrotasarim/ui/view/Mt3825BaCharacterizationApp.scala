@@ -98,7 +98,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String): Node =
+  def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String, apply: () => Unit, reset: () => Unit): Node =
     new HBox {
       spacing = 10
       content = List(
@@ -117,15 +117,21 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         new Label {
           text <== model.asString + " " + unitLabel
           prefWidth = 100
+        },
+        new Button("Apply") {
+          onAction = handle { apply() }
+        },
+        new Button("Default") {
+          onAction = handle { reset() }
         }
       )
     }
 
-  def globalReferenceBiasSlider = labeledSnappingSliderGroup("Global Reference Bias", CalibrationController.globalReferenceBias, 0, 3000, 1, "mV")
+  def globalReferenceBiasSlider = labeledSnappingSliderGroup("Global Reference Bias", CalibrationController.globalReferenceBias, 0, 3000, 1, "mV", CalibrationController.applyGlobalReferenceBias, CalibrationController.resetGlobalReferenceBias)
 
-  def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV")
+  def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
 
-  def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "us")
+  def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "us", CalibrationController.applyIntegrationTime, CalibrationController.resetIntegrationTime)
 
   def correctionControls: Node = {
     val correctionMode = new ToggleGroup
@@ -373,6 +379,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       disconnectButton,
       memoryMapButton,
       selfTestModeSelector,
+      cmosTestModeSelector,
       nameBox,
       saveButton
     )
@@ -392,6 +399,11 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def selfTestModeSelector: Node = new CheckBox("Self Test") {
     disable <== deviceConnected
     selected <==> isSelfTest
+  }
+
+  def cmosTestModeSelector: Node = new CheckBox("Cmos Test") {
+    disable <== !deviceConnected
+    selected <==> isCmosTest
   }
 
   def connectButton: Node = new Button("Connect") {

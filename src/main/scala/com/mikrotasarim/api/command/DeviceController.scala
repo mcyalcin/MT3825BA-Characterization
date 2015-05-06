@@ -66,6 +66,7 @@ class DeviceController(device: DeviceInterface) {
       case 0xbf1 => throw new Exception("Flash not ready.")
       case 0xbf2 => throw new Exception("Invalid flash partition.")
       case 0xbf3 => throw new Exception("Imaging not enabled.")
+      case 0xbf4 => throw new Exception("Integration time too high.")
       case 0xeeee => throw new Exception("Device on reset.")
       case default => throw new Exception("Unexpected error code: " + default)
     }

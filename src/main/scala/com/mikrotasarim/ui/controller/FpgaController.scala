@@ -14,6 +14,7 @@ object FpgaController {
 
   val deviceConnected = BooleanProperty(value = false)
   val isSelfTest = BooleanProperty(value = false)
+  val isCmosTest = BooleanProperty(value = false)
   val correctionEnabled = BooleanProperty(value = false)
   val onePointCorrection = BooleanProperty(value = false)
   val twoPointCorrection = BooleanProperty(value = false)
@@ -55,10 +56,25 @@ object FpgaController {
     deviceController.setTriggerMode(TriggerMode.Slave_Software)
     deviceController.setNucMode(NucMode.Enabled)
     deviceController.setAdcDelay(3)
+    deviceController.writeToRoicMemory(22,2047)
+    deviceController.writeToRoicMemory(18,4)
+    deviceController.setGlobalReferenceBias(3500)
     deviceController.setSamplingDelay(4)
     deviceController.enableImagingMode()
     deviceConnected.set(true)
   }
+
+  isCmosTest.onChange({
+    if (isCmosTest.value) {
+      deviceController.disableImagingMode()
+      deviceController.writeToRoicMemory(17,3)
+      deviceController.enableImagingMode()
+    } else {
+      deviceController.disableImagingMode()
+      deviceController.writeToRoicMemory(17,0)
+      deviceController.enableImagingMode()
+    }
+  })
 
   def disconnectFromFpga(): Unit = {
     deviceController.putFpgaOnReset()
