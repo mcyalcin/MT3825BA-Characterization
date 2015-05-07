@@ -7,7 +7,7 @@ import com.mikrotasarim.ui.controller.FpgaController.deviceController
 object MemoryMap {
 
   val minMemoryIndex = 4
-  val maxMemoryIndex = 80
+  val maxMemoryIndex = 95
 
   val memoryLocations = for (i <- minMemoryIndex to maxMemoryIndex) yield new MemoryLocation(i)
 
