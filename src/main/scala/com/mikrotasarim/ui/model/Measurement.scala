@@ -11,6 +11,13 @@ import scalafx.beans.property.{StringProperty, BooleanProperty}
 
 class Measurement {
   @JsonProperty
+  private var _referenceResistorMap: Array[Double] = Array.ofDim[Double](384*12)
+
+  def referenceResistorMap: Array[Double] = _referenceResistorMap
+
+  def referenceResistorMap_=(that: Array[Double]) = _referenceResistorMap = that
+
+  @JsonProperty
   private var _resistorMap: Array[Double] = Array.ofDim[Double](384 * 288)
 
   def resistorMap = _resistorMap
@@ -180,6 +187,7 @@ class Measurement {
     val netd0Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd0)).replaceAll("]", "\n")
     val netd1Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd1)).replaceAll("]", "\n")
     val resistorMapCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.resistorMap)).replaceAll("]", "\n")
+    val referenceResistorMapCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.referenceResistorMap)).replaceAll("]", "\n")
     val responsivityCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.responsivity)).replaceAll("]", "\n")
     val dead = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.dead.map(b => if (b) 1.0 else 0.0))).replaceAll("]", "\n")
 
@@ -190,6 +198,7 @@ class Measurement {
     FileUtils.write(new File(name + File.separator + "netd0.csv"), netd0Csv, "UTF-8")
     FileUtils.write(new File(name + File.separator + "netd1.csv"), netd1Csv, "UTF-8")
     FileUtils.write(new File(name + File.separator + "resistorMap.csv"), resistorMapCsv, "UTF-8")
+    FileUtils.write(new File(name + File.separator + "referenceResistorMap.csv"), referenceResistorMapCsv, "UTF-8")
     FileUtils.write(new File(name + File.separator + "responsivity.csv"), responsivityCsv, "UTF-8")
     FileUtils.write(new File(name + File.separator + "deadPixels.csv"), dead, "UTF-8")
   }

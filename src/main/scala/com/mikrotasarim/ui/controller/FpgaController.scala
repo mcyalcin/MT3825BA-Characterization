@@ -40,7 +40,7 @@ object FpgaController {
   def connectToFpga(): Unit = {
     deviceController = if (!isSelfTest.value) {
       if (device == null) {
-        device = new OpalKellyInterface("/home/mcyalcin/Desktop/guy.bit")
+        device = new OpalKellyInterface("/home/mcyalcin/Desktop/rfi_test_real_flash_package_04.bit")
       }
       new DeviceController(device)
     } else {
@@ -55,7 +55,7 @@ object FpgaController {
     deviceController.sendReferenceDataToRoic()
     deviceController.setTriggerMode(TriggerMode.Slave_Software)
     deviceController.setNucMode(NucMode.Enabled)
-    deviceController.setAdcDelay(3)
+    deviceController.setAdcDelay(2)
     deviceController.writeToRoicMemory(22,2047)
     deviceController.writeToRoicMemory(18,4)
     deviceController.setGlobalReferenceBias(3500)

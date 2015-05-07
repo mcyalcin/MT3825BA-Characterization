@@ -34,12 +34,13 @@ class DeviceController(device: DeviceInterface) {
     device.updateWireIns()
   }
 
+  def waitForDeviceReady(): Unit = {
+    do {
+      device.updateWireOuts()
+    } while (device.getWireOutValue(statusWire) != 0)
+  }
+
   private def setWiresAndTrigger(wires: Map[Int, Long]): Unit = {
-    def waitForDeviceReady(): Unit = {
-      do {
-        device.updateWireOuts()
-      } while (device.getWireOutValue(statusWire) != 0)
-    }
     waitForDeviceReady()
     for (wire <- wires.keys) {
       device.setWireInValue(wire, wires(wire))
@@ -240,6 +241,7 @@ class DeviceController(device: DeviceInterface) {
   }
 
   private def resetFlashOutFifo(): Unit = {
+    waitForDeviceReady()
     device.setWireInValue(resetWire, 0, 2 pow flashFifoOutReset)
     device.updateWireIns()
     device.setWireInValue(resetWire, 2 pow flashFifoOutReset, 2 pow flashFifoOutReset)
@@ -247,6 +249,7 @@ class DeviceController(device: DeviceInterface) {
   }
 
   private def resetFlashInFifo(): Unit = {
+    waitForDeviceReady()
     device.setWireInValue(resetWire, 0, 2 pow flashFifoInReset)
     device.updateWireIns()
     device.setWireInValue(resetWire, 2 pow flashFifoInReset, 2 pow flashFifoInReset)

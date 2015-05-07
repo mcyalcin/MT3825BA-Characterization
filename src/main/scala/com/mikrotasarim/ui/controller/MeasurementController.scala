@@ -122,6 +122,12 @@ object MeasurementController {
       ).toArray
   }
 
+  def combineBytes(raw: Array[Byte]): Array[Int] = {
+    (for (i <- 0 until raw.length / 2) yield {
+      ((raw(2 * i)+256) % 256) + ((raw(2 * i + 1) + 256) % 256) * 256
+    }).toArray
+  }
+
   def createResistorMap(): Unit = {
 
     val dc = FpgaController.deviceController
@@ -137,10 +143,8 @@ object MeasurementController {
     def find(cur: Int, min: Int, max: Int): Int = {
       def isVmeas(vmid: Int): Int = {
         dc.setPixelMidpoint(vmid)
-        val rawFrame = dc.getFullFrame.drop(392)
-        val frame = for (i <- 0 until 392 * 289) yield {
-          rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
-        }
+        val rawFrame = dc.getFullFrame.drop(392 * 2)
+        val frame = combineBytes(rawFrame)
         val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
         val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
         val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
@@ -174,17 +178,17 @@ object MeasurementController {
     val vmeas = find(2000, 1000, 3000)
 
     dc.setPixelMidpoint(vmeas - 8)
-    val f1 = dc.getFrame
+    val f1 = combineBytes(dc.getFrame)
     dc.setPixelMidpoint(vmeas + 8)
-    val f2 = dc.getFrame
+    val f2 = combineBytes(dc.getFrame)
 
     val s1 = for (i <- 0 until f1.length) yield f2(i) - f1(i)
 
     dc.setIntegrationTime(0)
     dc.setPixelMidpoint(vmeas - 8)
-    val f3 = dc.getFrame
+    val f3 = combineBytes(dc.getFrame)
     dc.setPixelMidpoint(vmeas + 8)
-    val f4 = dc.getFrame
+    val f4 = combineBytes(dc.getFrame)
 
     val s2 = for (i <- 0 until f3.length) yield f4(i) - f3(i)
 
@@ -194,8 +198,82 @@ object MeasurementController {
     val tint: Double = 10 pow -6
     val cint: Double = (10 pow -12) * 31
     val k: Double = 270.0
-    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i) / (s1(i) - s2(i))) - (k / deltaV(i)))
+    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble)) - (k / deltaV(i).toDouble))
 
     measurement.resistorMap = r.toArray
+  }
+
+  def createReferenceResistorMap(): Unit = {
+    val dc = FpgaController.deviceController
+
+    dc.setReset()
+    dc.clearReset()
+    dc.updateReferenceData(Array.fill[Byte](384 * 2)(255.toByte))
+    dc.initializeRoic()
+    dc.setResistanceMeasurementMode(ResistanceMeasurementMode.Reference)
+    dc.setIntegrationTime(30)
+    dc.enableImagingMode()
+
+    def find(cur: Int, min: Int, max: Int): Int = {
+      def isVmeas(vmid: Int): Int = {
+        dc.setPixelMidpoint(vmid)
+        val rawFrame = dc.getFullFrame.drop(392 * 2)
+        val frame = combineBytes(rawFrame)
+        val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
+        val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
+        val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
+        val vdc = vdcFrame.map(_.toDouble).sum / vavgFrame.length
+        if (vavg - vdc < 900) -1
+        else if (vavg - vdc > 950) 1
+        else 0
+      }
+
+      val isGood = isVmeas(cur)
+
+      if (isGood == 0) cur
+      else if (isGood == -1) {
+        if (min < cur) {
+          val newMax = cur - 1
+          val newCur = (cur + min) / 2
+          find(newCur, min, newMax)
+        }
+        else throw new Exception("No Vmeas found.")
+      }
+      else {
+        if (max > cur) {
+          val newMin = cur + 1
+          val newCur = (cur + max + 1) / 2
+          find(newCur, newMin, max)
+        }
+        else throw new Exception("No Vmeas found.")
+      }
+    }
+
+    val vmeas = find(2000, 1000, 3000)
+
+    dc.setPixelMidpoint(vmeas - 8)
+    val f1 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+    dc.setPixelMidpoint(vmeas + 8)
+    val f2 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+
+    val s1 = for (i <- 0 until f1.length) yield f2(i) - f1(i)
+
+    dc.setIntegrationTime(0)
+    dc.setPixelMidpoint(vmeas - 8)
+    val f3 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+    dc.setPixelMidpoint(vmeas + 8)
+    val f4 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+
+    val s2 = for (i <- 0 until f3.length) yield f4(i) - f3(i)
+
+    val deltaV = for (i <- 0 until f1.length) yield f1(i) - f3(i)
+
+    import spire.implicits._
+    val tint: Double = 10 pow -6
+    val cint: Double = (10 pow -12) * 31
+    val k: Double = 270.0
+    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble)) - (k / deltaV(i).toDouble))
+
+    measurement.referenceResistorMap = r.toArray
   }
 }
