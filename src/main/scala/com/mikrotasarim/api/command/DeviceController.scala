@@ -118,6 +118,7 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> sPixGOpCode,
       dataWire -> pixelGainDenominator
     ))
+    updateRoicMemory()
   }
 
   def setMirrorMode(mode: MirrorMode): Unit = {
@@ -144,13 +145,9 @@ class DeviceController(device: DeviceInterface) {
   }
 
   def updateRoicMemory(): Unit = {
-    try {
-      setWiresAndTrigger(Map(
-        commandWire -> uRoicOpCode
-      ))
-    } catch {
-      case e: ImagingInProgressException => // Ignore imaging in progress exception
-    }
+    setWiresAndTrigger(Map(
+      commandWire -> uRoicOpCode
+    ))
   }
 
   def writeToRoicMemoryBuffer(address: Int, value: Long): Unit = {
@@ -173,6 +170,7 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> sVRefOpCode,
       dataWire -> value
     ))
+    updateRoicMemory()
   }
 
   def initializeRoic(): Unit = {
@@ -196,6 +194,7 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> sGRfBOpCode,
       dataWire -> value
     ))
+    updateRoicMemory()
   }
 
   // Input is 0-1.5V with 12 bit resolution.
@@ -205,6 +204,7 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> sPxBROpCode,
       dataWire -> value
     ))
+    updateRoicMemory()
   }
 
   def setActiveFlashPartition(address: Long): Unit = {
@@ -322,6 +322,7 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> sPxMpOpCode,
       dataWire -> value
     ))
+    updateRoicMemory()
   }
 
   def disableImagingMode(): Unit = {

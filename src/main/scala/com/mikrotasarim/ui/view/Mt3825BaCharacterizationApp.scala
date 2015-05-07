@@ -92,7 +92,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         correctionControls,
         new Separator,
         globalReferenceBiasSlider,
-        pixelBiasSlider,
+//        pixelBiasSlider,
         integrationTimeSlider
       )
     }
