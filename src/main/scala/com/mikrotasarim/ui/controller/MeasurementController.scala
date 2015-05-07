@@ -128,9 +128,46 @@ object MeasurementController {
     }).toArray
   }
 
-  def createResistorMap(): Unit = {
+  def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
+    def isVmeas(vmid: Int): Int = {
+      dc.setPixelMidpoint(vmid)
+      val rawFrame = dc.getFullFrame.drop(392 * 2)
+      val frame = combineBytes(rawFrame)
+      val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
+      val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
+      val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
+      val vdc = vdcFrame.map(_.toDouble).sum / vavgFrame.length
+      if (vavg - vdc < 900) -1
+      else if (vavg - vdc > 950) 1
+      else 0
+    }
 
-    val dc = FpgaController.deviceController
+    val isGood = isVmeas(cur)
+
+    val searchDirection = if (isDetector) 1 else -1
+
+    if (isGood == 0) cur
+    else if (isGood == searchDirection) {
+      if (min < cur) {
+        val newMax = cur - 1
+        val newCur = (cur + min) / 2
+        findVmeas(newCur, min, newMax)
+      }
+      else throw new Exception("No Vmeas found.")
+    }
+    else {
+      if (max > cur) {
+        val newMin = cur + 1
+        val newCur = (cur + max + 1) / 2
+        findVmeas(newCur, newMin, max)
+      }
+      else throw new Exception("No Vmeas found.")
+    }
+  }
+
+  def dc = FpgaController.deviceController
+
+  def createResistorMap(): Unit = {
 
     dc.setReset()
     dc.clearReset()
@@ -140,42 +177,7 @@ object MeasurementController {
     dc.setIntegrationTime(30)
     dc.enableImagingMode()
 
-    def find(cur: Int, min: Int, max: Int): Int = {
-      def isVmeas(vmid: Int): Int = {
-        dc.setPixelMidpoint(vmid)
-        val rawFrame = dc.getFullFrame.drop(392 * 2)
-        val frame = combineBytes(rawFrame)
-        val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
-        val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
-        val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
-        val vdc = vdcFrame.map(_.toDouble).sum / vavgFrame.length
-        if (vavg - vdc < 900) -1
-        else if (vavg - vdc > 950) 1
-        else 0
-      }
-
-      val isGood = isVmeas(cur)
-
-      if (isGood == 0) cur
-      else if (isGood == -1) {
-        if (min < cur) {
-          val newMax = cur - 1
-          val newCur = (cur + min) / 2
-          find(newCur, min, newMax)
-        }
-        else throw new Exception("No Vmeas found.")
-      }
-      else {
-        if (max > cur) {
-          val newMin = cur + 1
-          val newCur = (cur + max + 1) / 2
-          find(newCur, newMin, max)
-        }
-        else throw new Exception("No Vmeas found.")
-      }
-    }
-
-    val vmeas = find(2000, 1000, 3000)
+    val vmeas = findVmeas(2000, 1000, 3000, true)
 
     dc.setPixelMidpoint(vmeas - 8)
     val f1 = combineBytes(dc.getFrame)
@@ -204,7 +206,6 @@ object MeasurementController {
   }
 
   def createReferenceResistorMap(): Unit = {
-    val dc = FpgaController.deviceController
 
     dc.setReset()
     dc.clearReset()
@@ -214,42 +215,7 @@ object MeasurementController {
     dc.setIntegrationTime(30)
     dc.enableImagingMode()
 
-    def find(cur: Int, min: Int, max: Int): Int = {
-      def isVmeas(vmid: Int): Int = {
-        dc.setPixelMidpoint(vmid)
-        val rawFrame = dc.getFullFrame.drop(392 * 2)
-        val frame = combineBytes(rawFrame)
-        val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
-        val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
-        val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
-        val vdc = vdcFrame.map(_.toDouble).sum / vavgFrame.length
-        if (vavg - vdc < 900) -1
-        else if (vavg - vdc > 950) 1
-        else 0
-      }
-
-      val isGood = isVmeas(cur)
-
-      if (isGood == 0) cur
-      else if (isGood == -1) {
-        if (min < cur) {
-          val newMax = cur - 1
-          val newCur = (cur + min) / 2
-          find(newCur, min, newMax)
-        }
-        else throw new Exception("No Vmeas found.")
-      }
-      else {
-        if (max > cur) {
-          val newMin = cur + 1
-          val newCur = (cur + max + 1) / 2
-          find(newCur, newMin, max)
-        }
-        else throw new Exception("No Vmeas found.")
-      }
-    }
-
-    val vmeas = find(2000, 1000, 3000)
+    val vmeas = findVmeas(2000, 1000, 3000, false)
 
     dc.setPixelMidpoint(vmeas - 8)
     val f1 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
