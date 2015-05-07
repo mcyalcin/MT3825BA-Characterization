@@ -151,7 +151,7 @@ object MeasurementController {
       if (min < cur) {
         val newMax = cur - 1
         val newCur = (cur + min) / 2
-        findVmeas(newCur, min, newMax)
+        findVmeas(newCur, min, newMax, isDetector)
       }
       else throw new Exception("No Vmeas found.")
     }
@@ -159,7 +159,7 @@ object MeasurementController {
       if (max > cur) {
         val newMin = cur + 1
         val newCur = (cur + max + 1) / 2
-        findVmeas(newCur, newMin, max)
+        findVmeas(newCur, newMin, max, isDetector)
       }
       else throw new Exception("No Vmeas found.")
     }
@@ -177,7 +177,7 @@ object MeasurementController {
     dc.setIntegrationTime(30)
     dc.enableImagingMode()
 
-    val vmeas = findVmeas(2000, 1000, 3000, true)
+    val vmeas = findVmeas(2000, 1000, 3000, isDetector = true)
 
     dc.setPixelMidpoint(vmeas - 8)
     val f1 = combineBytes(dc.getFrame)
@@ -215,7 +215,7 @@ object MeasurementController {
     dc.setIntegrationTime(30)
     dc.enableImagingMode()
 
-    val vmeas = findVmeas(2000, 1000, 3000, false)
+    val vmeas = findVmeas(2000, 1000, 3000, isDetector = false)
 
     dc.setPixelMidpoint(vmeas - 8)
     val f1 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
