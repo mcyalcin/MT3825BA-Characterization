@@ -16,3 +16,5 @@ tags
 .*.swp
 .*.swo
 *.log
+*.json
+*.csv
