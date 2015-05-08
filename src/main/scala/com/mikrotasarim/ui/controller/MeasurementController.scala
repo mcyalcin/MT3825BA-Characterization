@@ -180,7 +180,7 @@ object MeasurementController {
     dc.writeToRoicMemory(22,2047)
     dc.writeToRoicMemory(18,4)
     if (FpgaController.isCmosTest.value) {
-      dc.writeToRoicMemory(17, 3)
+      dc.writeToRoicMemory(17, 1)
     }
     dc.setGlobalReferenceBias(3500)
     dc.enableImagingMode()
@@ -228,7 +228,7 @@ object MeasurementController {
     dc.writeToRoicMemory(22,2047)
     dc.writeToRoicMemory(18,4)
     if (FpgaController.isCmosTest.value) {
-      dc.writeToRoicMemory(17, 3)
+      dc.writeToRoicMemory(17, 1)
     }
     dc.enableImagingMode()
 
