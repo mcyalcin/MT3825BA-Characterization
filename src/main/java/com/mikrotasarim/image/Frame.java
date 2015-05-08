@@ -16,6 +16,8 @@ public class Frame {
         this.pixelArray = new short[384 * 288];
         for (int i = 0; i < 384 * 288; i++) {
             this.pixelArray[i] = (short) pixelArray[i];
+            if(i == 50000) {this.pixelArray[i] = 0;}
+            if(i == 50001) {this.pixelArray[i] = 16383;}
         }
     }
 

@@ -183,13 +183,13 @@ class Measurement {
       result
     }
     val json = JacksMapper.writeValueAsString[Measurement](this)
-    val noiseCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.noise)).replaceAll("]", "\n")
-    val netd0Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd0)).replaceAll("]", "\n")
-    val netd1Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd1)).replaceAll("]", "\n")
-    val resistorMapCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.resistorMap)).replaceAll("]", "\n")
-    val referenceResistorMapCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.referenceResistorMap)).replaceAll("]", "\n")
-    val responsivityCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.responsivity)).replaceAll("]", "\n")
-    val dead = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.dead.map(b => if (b) 1.0 else 0.0))).replaceAll("]", "\n")
+    val noiseCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.noise)).replaceAll("]", "\n").replaceAll("\\[", "").replaceAll("]", "")
+    val netd0Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd0)).replaceAll("]", "\n").replaceAll("\\[", "").replaceAll("]", "")
+    val netd1Csv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.netd1)).replaceAll("]", "\n").replaceAll("\\[", "").replaceAll("]", "")
+    val resistorMapCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.resistorMap)).replaceAll("],", "\n").replaceAll("\\[", "").replaceAll("]", "")
+    val referenceResistorMapCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.referenceResistorMap)).replaceAll("],", "\n").replaceAll("\\[", "").replaceAll("]", "")
+    val responsivityCsv = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.responsivity)).replaceAll("]", "\n").replaceAll("\\[", "").replaceAll("]", "")
+    val dead = JacksMapper.writeValueAsString[Array[Array[Double]]](divideToLines(this.dead.map(b => if (b) 1.0 else 0.0))).replaceAll("]", "\n").replaceAll("\\[", "").replaceAll("]", "")
 
     FileUtils.write(file, json, "UTF-8")
     val blaFile = new File(name + File.separator + "bla.csv")

@@ -1,6 +1,6 @@
 package com.mikrotasarim.ui.controller
 
-import com.mikrotasarim.api.command.ApiConstants.{TriggerMode, ResistanceMeasurementMode}
+import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode, ResistanceMeasurementMode}
 import com.mikrotasarim.ui.model.Measurement
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
@@ -128,71 +128,71 @@ object MeasurementController {
     }).toArray
   }
 
-  def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
-    def isVmeas(vmid: Int): Int = {
-      dc.setPixelMidpoint(vmid)
-      val rawFrame = dc.getFullFrame.drop(392 * 2)
-      val frame = combineBytes(rawFrame)
-      val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
-      val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
-      val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
-      val vdc = vdcFrame.map(_.toDouble).sum / vdcFrame.length
-      if (vavg - vdc < 900) -1
-      else if (vavg - vdc > 950) 1
-      else 0
-    }
 
-    val isGood = isVmeas(cur)
-
-    val searchDirection = if (isDetector) 1 else -1
-
-    if (isGood == 0) cur
-    else if (isGood == searchDirection) {
-      if (min < cur) {
-        val newMax = cur - 1
-        val newCur = (cur + min) / 2
-        findVmeas(newCur, min, newMax, isDetector)
-      }
-      else throw new Exception("No Vmeas found.")
-    }
-    else {
-      if (max > cur) {
-        val newMin = cur + 1
-        val newCur = (cur + max + 1) / 2
-        findVmeas(newCur, newMin, max, isDetector)
-      }
-      else throw new Exception("No Vmeas found.")
-    }
-  }
 
   def dc = FpgaController.deviceController
 
   def createResistorMap(): Unit = {
 
+    def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
+      def isVmeas(vmid: Int): Int = {
+        dc.setPixelMidpoint(vmid)
+        val rawFrame = dc.getFullFrame.drop(392 * 2)
+        val frame = combineBytes(rawFrame)
+        val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
+        val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
+        val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
+        val vdc = vdcFrame.map(_.toDouble).sum / vdcFrame.length
+        if (vavg - vdc < 900) -1
+        else if (vavg - vdc > 950) 1
+        else 0
+      }
+
+      val isGood = isVmeas(cur)
+
+      val searchDirection = if (isDetector) 1 else -1
+
+      if (isGood == 0) cur
+      else if (isGood == searchDirection) {
+        if (min < cur) {
+          val newMax = cur - 1
+          val newCur = (cur + min) / 2
+          findVmeas(newCur, min, newMax, isDetector)
+        }
+        else throw new Exception("No Vmeas found.")
+      }
+      else {
+        if (max > cur) {
+          val newMin = cur + 1
+          val newCur = (cur + max + 1) / 2
+          findVmeas(newCur, newMin, max, isDetector)
+        }
+        else throw new Exception("No Vmeas found.")
+      }
+    }
+
     dc.setReset()
     dc.clearReset()
     dc.disableImagingMode()
-    dc.updateReferenceData(Array.ofDim[Byte](384 * 2))
     dc.initializeRoic()
+    dc.setNucMode(NucMode.Fixed,0)
+    dc.sendReferenceDataToRoic()
     dc.setTriggerMode(TriggerMode.Slave_Software)
     dc.setResistanceMeasurementMode(ResistanceMeasurementMode.Detector)
     dc.setIntegrationTime(30)
     dc.writeToRoicMemory(22,2047)
+    dc.readFromRoicMemory(22)
     dc.writeToRoicMemory(18,4)
     if (FpgaController.isCmosTest.value) {
-      dc.writeToRoicMemory(17, 1)
+      dc.writeToRoicMemory(17, 3)
     }
-    dc.setGlobalReferenceBias(3500)
     dc.enableImagingMode()
 
     val vmeas = findVmeas(2000, 1000, 3000, isDetector = true)
 
     dc.setPixelMidpoint(vmeas - 8)
-    Thread.sleep(200)
     val f1 = combineBytes(dc.getFrame)
-    Thread.sleep(200)
     dc.setPixelMidpoint(vmeas + 8)
-    Thread.sleep(200)
     val f2 = combineBytes(dc.getFrame)
 
     val s1 = for (i <- 0 until f1.length) yield f2(i) - f1(i)
@@ -205,9 +205,9 @@ object MeasurementController {
 
     val s2 = for (i <- 0 until f3.length) yield f4(i) - f3(i)
 
-    val deltaV = for (i <- 0 until f1.length) yield f1(i) - f3(i)
+    val deltaV = for (i <- 0 until f1.length) yield math.abs(f1(i) - f3(i))
 
-    val tint: Double = 0.000001
+    val tint: Double = 0.00001
     val cint: Double = 0.000000000031
     val k: Double = 270.0
     val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble)) - (k / deltaV(i).toDouble))
@@ -217,18 +217,57 @@ object MeasurementController {
 
   def createReferenceResistorMap(): Unit = {
 
+    def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
+      def isVmeas(vmid: Int): Int = {
+        dc.setPixelMidpoint(vmid)
+        val rawFrame = dc.getFullFrame.drop(392 * 2)
+        val frame = combineBytes(rawFrame)
+        val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
+        val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
+        val vdcFrame = frame.zipWithIndex.filter(_._2 % 392 >= 384).map(_._1)
+        val vdc = vdcFrame.map(_.toDouble).sum / vdcFrame.length
+        if (vdc-vavg < 900) -1
+        else if (vdc-vavg > 950) 1
+        else 0
+      }
+
+      val isGood = isVmeas(cur)
+
+      val searchDirection = if (isDetector) 1 else -1
+
+      if (isGood == 0) cur
+      else if (isGood == searchDirection) {
+        if (min < cur) {
+          val newMax = cur - 1
+          val newCur = (cur + min) / 2
+          findVmeas(newCur, min, newMax, isDetector)
+        }
+        else throw new Exception("No Vmeas found.")
+      }
+      else {
+        if (max > cur) {
+          val newMin = cur + 1
+          val newCur = (cur + max + 1) / 2
+          findVmeas(newCur, newMin, max, isDetector)
+        }
+        else throw new Exception("No Vmeas found.")
+      }
+    }
+
     dc.setReset()
     dc.clearReset()
     dc.disableImagingMode()
-    dc.updateReferenceData(Array.fill[Byte](384 * 2)(255.toByte))
     dc.initializeRoic()
+    dc.setNucMode(NucMode.Fixed,255)
+    dc.sendReferenceDataToRoic()
     dc.setTriggerMode(TriggerMode.Slave_Software)
     dc.setResistanceMeasurementMode(ResistanceMeasurementMode.Reference)
+    dc.setNucMode(NucMode.Disabled)
     dc.setIntegrationTime(30)
     dc.writeToRoicMemory(22,2047)
     dc.writeToRoicMemory(18,4)
     if (FpgaController.isCmosTest.value) {
-      dc.writeToRoicMemory(17, 1)
+      dc.writeToRoicMemory(17, 3)
     }
     dc.enableImagingMode()
 
@@ -249,12 +288,12 @@ object MeasurementController {
 
     val s2 = for (i <- 0 until f3.length) yield f4(i) - f3(i)
 
-    val deltaV = for (i <- 0 until f1.length) yield f1(i) - f3(i)
+    val deltaV = for (i <- 0 until f1.length) yield math.abs(f1(i) - f3(i))
 
     import spire.implicits._
-    val tint: Double = 10.0 pow -6
+    val tint: Double = (10.0 pow -6) * 10
     val cint: Double = (10.0 pow -12) * 31
-    val k: Double = 270.0
+    val k: Double = 196.0
     val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble)) - (k / deltaV(i).toDouble))
 
     measurement.referenceResistorMap = r.toArray

@@ -258,6 +258,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def resistorMap: Node = new Button("Resistor Map") {
     onAction = handle {
       MeasurementController.createResistorMap()
+      MeasurementController.createReferenceResistorMap()
     }
   }
 
