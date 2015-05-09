@@ -40,7 +40,7 @@ object FpgaController {
   def connectToFpga(): Unit = {
     deviceController = if (!isSelfTest.value) {
       if (device == null) {
-        device = new OpalKellyInterface("/home/mcyalcin/Desktop/rfi_test_real_flash_package_11.bit")
+        device = new OpalKellyInterface("D:\\rfi_test_real_flash_package_11.bit")
       }
       new DeviceController(device)
     } else {

@@ -210,7 +210,7 @@ object MeasurementController {
     val tint: Double = 0.00001
     val cint: Double = 0.000000000031
     val k: Double = 270.0
-    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble)) - (k / deltaV(i).toDouble))
+    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble + 0.000000001)) - (k / (deltaV(i).toDouble + 0.000000001)))
 
     measurement.resistorMap = r.toArray
   }
@@ -293,8 +293,8 @@ object MeasurementController {
     import spire.implicits._
     val tint: Double = (10.0 pow -6) * 10
     val cint: Double = (10.0 pow -12) * 31
-    val k: Double = 196.0
-    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble)) - (k / deltaV(i).toDouble))
+    val k: Double = 166.0 // Old Value : 196
+    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble + 0.000000001)) - (k / (deltaV(i).toDouble + 0.000000001)))
 
     measurement.referenceResistorMap = r.toArray
   }
