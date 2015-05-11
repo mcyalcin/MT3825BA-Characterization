@@ -93,7 +93,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         new Separator,
         globalReferenceBiasSlider,
 //        pixelBiasSlider,
-        integrationTimeSlider
+        integrationTimeSlider,
+        adcDelaySlider
       )
     }
   }
@@ -132,6 +133,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
 
   def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "us", CalibrationController.applyIntegrationTime, CalibrationController.resetIntegrationTime)
+
+  def adcDelaySlider = labeledSnappingSliderGroup("Adc Delay", CalibrationController.adcDelay, 0, 9, 1, "1/10 clock cycle", CalibrationController.applyAdcDelay, CalibrationController.resetAdcDelay)
 
   def correctionControls: Node = {
     val correctionMode = new ToggleGroup

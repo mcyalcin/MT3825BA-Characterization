@@ -30,12 +30,19 @@ object CalibrationController {
 
   def applyGlobalReferenceBias(): Unit = dc.setGlobalReferenceBias(4096 * globalReferenceBias.value / 3000)
 
+  def resetAdcDelay(): Unit = {
+    adcDelay.set(2)
+    applyAdcDelay()
+  }
+
+  def applyAdcDelay(): Unit = dc.setAdcDelay(adcDelay.value)
 
   def dc: DeviceController = FpgaController.deviceController
 
   val globalReferenceBias = IntegerProperty(2563)
   val pixelBiasRange = IntegerProperty(55)
   val integrationTime = IntegerProperty(64)
+  val adcDelay = IntegerProperty(2)
 
   val flashPartitions = ObservableBuffer(List(
     "Partition 1",
