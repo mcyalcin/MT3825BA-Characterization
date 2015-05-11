@@ -21,8 +21,8 @@ object MeasurementController {
         measurement.temp1
       )).toArray
 
-    measurement.netd0 = netds(0).toArray
-    measurement.netd1 = netds(1).toArray
+    measurement.netd0 = (for (i <- 0 until 384 * 288) yield netds(i).head).toArray
+    measurement.netd1 = (for (i <- 0 until 384 * 288) yield netds(i)(1)).toArray
   }
 
   def captureNetdImage(i: Int): Unit = {

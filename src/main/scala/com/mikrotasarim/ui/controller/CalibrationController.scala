@@ -101,7 +101,7 @@ object CalibrationController {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
-      val bas = Frame.fromProcessed(frameSet(0).toArray)
+      val bas = Frame.fromProcessed(frameSet.head.toArray)
       bas.saveTiff("/home/mcyalcin/Desktop/nuc" + i + ".tif")
       Frame.show("/home/mcyalcin/Desktop/nuc" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
