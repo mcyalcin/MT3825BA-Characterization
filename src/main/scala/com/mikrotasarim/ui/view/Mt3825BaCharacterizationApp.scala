@@ -196,6 +196,10 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
+  def bitfileSelector: Node = new ChoiceBox(bitfileLabels) {
+    value <==> selectedBitfile
+  }
+
   def measurementControlPanel: Node = new ScrollPane {
     content = new VBox {
       padding = Insets(10)
@@ -376,6 +380,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     padding = Insets(10)
     spacing = 20
     content = List(
+      bitfileSelector,
       connectButton,
       disconnectButton,
       memoryMapButton,

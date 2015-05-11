@@ -5,6 +5,7 @@ import com.mikrotasarim.api.command.DeviceController
 import com.mikrotasarim.api.device.{ConsoleMockDeviceInterface, OpalKellyInterface}
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
+import scalafx.collections.ObservableBuffer
 
 object FpgaController {
 
@@ -37,10 +38,19 @@ object FpgaController {
     ySize.set("288")
   }
 
+  val bitfiles = Map(
+    "Package" -> "mt3825ba_a0_package.bit",
+    "Dewar" -> "mt3825ba_a0_dewar.bit"
+  )
+
+  val bitfileLabels = ObservableBuffer(bitfiles.keySet.toList)
+
+  val selectedBitfile = StringProperty("Package")
+
   def connectToFpga(): Unit = {
     deviceController = if (!isSelfTest.value) {
       if (device == null) {
-        device = new OpalKellyInterface("D:\\rfi_test_real_flash_package_11.bit")
+        device = new OpalKellyInterface(bitfiles(selectedBitfile.value))
       }
       new DeviceController(device)
     } else {
