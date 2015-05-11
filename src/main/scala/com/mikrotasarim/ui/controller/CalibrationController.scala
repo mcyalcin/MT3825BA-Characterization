@@ -102,14 +102,14 @@ object CalibrationController {
         }
       }
       val bas = Frame.fromProcessed(frameSet.head.toArray)
-      bas.saveTiff("/home/mcyalcin/Desktop/nuc" + i + ".tif")
-      Frame.show("/home/mcyalcin/Desktop/nuc" + i + ".tif")
+      bas.saveTiff("nuc" + i + ".tif")
+      Frame.show("nuc" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
     val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
-      var min = nucCalibrationDistances(0)(i)
+      var min = nucCalibrationDistances.head(i)
       var minIndex = 0
       for (j <- 1 to 63) {
         if (nucCalibrationDistances(j)(i) < min) {
@@ -122,8 +122,8 @@ object CalibrationController {
     }.toByte
     MeasurementController.measurement.dead = deadPixels
     val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
-    nucFrame.saveTiff("/home/mcyalcin/Desktop/nucFrame.tif")
-    Frame.show("/home/mcyalcin/Desktop/nucFrame.tif")
+    nucFrame.saveTiff("nucFrame.tif")
+    Frame.show("nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte
