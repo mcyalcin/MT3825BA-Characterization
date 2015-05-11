@@ -4,7 +4,7 @@ import com.mikrotasarim.api.device.DeviceNotFoundException
 import com.mikrotasarim.ui.controller.CalibrationController._
 import com.mikrotasarim.ui.controller.FpgaController._
 import com.mikrotasarim.ui.controller.ImageController._
-import com.mikrotasarim.ui.controller.{CalibrationController, MeasurementController}
+import com.mikrotasarim.ui.controller.{FpgaController, CalibrationController, MeasurementController}
 import com.mikrotasarim.ui.model.{Measurement, MemoryMap}
 import org.controlsfx.dialog.Dialogs
 
@@ -263,6 +263,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     onAction = handle {
       MeasurementController.createResistorMap()
       MeasurementController.createReferenceResistorMap()
+      FpgaController.disconnectFromFpga()
+      FpgaController.connectToFpga()
     }
   }
 
