@@ -127,9 +127,6 @@ object MeasurementController {
       ((raw(2 * i)+256) % 256) + ((raw(2 * i + 1) + 256) % 256) * 256
     }).toArray
   }
-
-
-
   def dc = FpgaController.deviceController
 
   def createResistorMap(): Unit = {
@@ -265,7 +262,7 @@ object MeasurementController {
     dc.setNucMode(NucMode.Disabled)
     dc.setIntegrationTime(30)
     dc.writeToRoicMemory(22,2047)
-    dc.writeToRoicMemory(18,4)
+    dc.writeToRoicMemory(18,12)
     if (FpgaController.isCmosTest.value) {
       dc.writeToRoicMemory(17, 3)
     }
