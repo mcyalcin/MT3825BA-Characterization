@@ -30,12 +30,19 @@ object CalibrationController {
 
   def applyGlobalReferenceBias(): Unit = dc.setGlobalReferenceBias(4096 * globalReferenceBias.value / 3000)
 
+  def resetAdcDelay(): Unit = {
+    adcDelay.set(2)
+    applyAdcDelay()
+  }
+
+  def applyAdcDelay(): Unit = dc.setAdcDelay(adcDelay.value)
 
   def dc: DeviceController = FpgaController.deviceController
 
   val globalReferenceBias = IntegerProperty(2563)
   val pixelBiasRange = IntegerProperty(55)
   val integrationTime = IntegerProperty(64)
+  val adcDelay = IntegerProperty(2)
 
   val flashPartitions = ObservableBuffer(List(
     "Partition 1",
@@ -94,15 +101,13 @@ object CalibrationController {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
-      val bas = Frame.fromProcessed(frameSet(0).toArray)
-      bas.saveTiff("/home/mcyalcin/Desktop/nuc" + i + ".tif")
-      Frame.show("/home/mcyalcin/Desktop/nuc" + i + ".tif")
+      val bas = Frame.fromProcessed(frameSet.head.toArray)
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
     val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
-      var min = nucCalibrationDistances(0)(i)
+      var min = nucCalibrationDistances.head(i)
       var minIndex = 0
       for (j <- 1 to 63) {
         if (nucCalibrationDistances(j)(i) < min) {
@@ -115,8 +120,6 @@ object CalibrationController {
     }.toByte
     MeasurementController.measurement.dead = deadPixels
     val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
-    nucFrame.saveTiff("/home/mcyalcin/Desktop/nucFrame.tif")
-    Frame.show("/home/mcyalcin/Desktop/nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte

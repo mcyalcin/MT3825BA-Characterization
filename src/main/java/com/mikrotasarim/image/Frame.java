@@ -25,8 +25,6 @@ public class Frame {
         BufferedImage bufferedImage = new BufferedImage(384, 288, BufferedImage.TYPE_USHORT_GRAY);
         bufferedImage.getRaster().setDataElements(0, 0, 384, 288, pixelArray);
         File file = new File(fileName);
-        file.getParentFile().mkdirs();
-        file.createNewFile();
         ImageIO.write(bufferedImage, "TIFF", file);
     }
 

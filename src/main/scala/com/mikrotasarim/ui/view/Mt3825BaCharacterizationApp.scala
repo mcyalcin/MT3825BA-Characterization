@@ -4,7 +4,7 @@ import com.mikrotasarim.api.device.DeviceNotFoundException
 import com.mikrotasarim.ui.controller.CalibrationController._
 import com.mikrotasarim.ui.controller.FpgaController._
 import com.mikrotasarim.ui.controller.ImageController._
-import com.mikrotasarim.ui.controller.{CalibrationController, MeasurementController}
+import com.mikrotasarim.ui.controller.{FpgaController, CalibrationController, MeasurementController}
 import com.mikrotasarim.ui.model.{Measurement, MemoryMap}
 import org.controlsfx.dialog.Dialogs
 
@@ -93,7 +93,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         new Separator,
         globalReferenceBiasSlider,
 //        pixelBiasSlider,
-        integrationTimeSlider
+        integrationTimeSlider,
+        adcDelaySlider
       )
     }
   }
@@ -132,6 +133,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
 
   def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "us", CalibrationController.applyIntegrationTime, CalibrationController.resetIntegrationTime)
+
+  def adcDelaySlider = labeledSnappingSliderGroup("Adc Delay", CalibrationController.adcDelay, 0, 9, 1, "1/10 clock cycle", CalibrationController.applyAdcDelay, CalibrationController.resetAdcDelay)
 
   def correctionControls: Node = {
     val correctionMode = new ToggleGroup
@@ -263,6 +266,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     onAction = handle {
       MeasurementController.createResistorMap()
       MeasurementController.createReferenceResistorMap()
+      FpgaController.disconnectFromFpga()
+      FpgaController.connectToFpga()
     }
   }
 
