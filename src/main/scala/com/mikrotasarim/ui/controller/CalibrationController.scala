@@ -102,8 +102,6 @@ object CalibrationController {
         }
       }
       val bas = Frame.fromProcessed(frameSet.head.toArray)
-      bas.saveTiff("nuc" + i + ".tif")
-      Frame.show("nuc" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
