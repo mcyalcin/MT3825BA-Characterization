@@ -120,8 +120,6 @@ object CalibrationController {
     }.toByte
     MeasurementController.measurement.dead = deadPixels
     val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
-    nucFrame.saveTiff("nucFrame.tif")
-    Frame.show("nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte
