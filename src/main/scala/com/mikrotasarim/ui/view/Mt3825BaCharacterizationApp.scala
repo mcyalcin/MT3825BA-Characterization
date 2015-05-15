@@ -132,9 +132,9 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
 
-  def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "us", CalibrationController.applyIntegrationTime, CalibrationController.resetIntegrationTime)
+  def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "\u00b5s", CalibrationController.applyIntegrationTime, CalibrationController.resetIntegrationTime)
 
-  def adcDelaySlider = labeledSnappingSliderGroup("Adc Delay", CalibrationController.adcDelay, 0, 9, 1, "1/10 clock cycle", CalibrationController.applyAdcDelay, CalibrationController.resetAdcDelay)
+  def adcDelaySlider = labeledSnappingSliderGroup("Adc Delay", CalibrationController.adcDelay, 0, 9, 1, "/ 10 cycle", CalibrationController.applyAdcDelay, CalibrationController.resetAdcDelay)
 
   def correctionControls: Node = {
     val correctionMode = new ToggleGroup
@@ -250,13 +250,35 @@ object Mt3825BaCharacterizationApp extends JFXApp {
             MeasurementController.measureNetd()
           }
         },
+        new HBox {
+          spacing = 10
+          content = List(
+            new Label("F#") {
+              prefWidth = 110
+            },
+            new TextField {
+              text <==> MeasurementController.fNumber
+            }
+          )
+        },
+        new HBox {
+          spacing = 10
+          content = List(
+            new Label("Dimension (\u00b5m)") {
+              prefWidth = 110
+            },
+            new TextField {
+              text <==> MeasurementController.detectorDimension
+            }
+          )
+        },
         responsivity
       )
     }
   }
 
   def responsivity: Node = new Button("Measure Responsivity") {
-    disable <== !MeasurementController.t0Set || !MeasurementController.t1Set
+    disable <== !MeasurementController.netdDone
     onAction = handle {
       MeasurementController.measureResponsivity()
     }
