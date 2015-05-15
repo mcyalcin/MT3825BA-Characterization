@@ -3,7 +3,7 @@ package com.mikrotasarim.ui.controller
 import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.NucMode
 import com.mikrotasarim.api.command.DeviceController
-import com.mikrotasarim.image.Frame
+import com.mikrotasarim.image.FrameImage
 
 import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
@@ -101,7 +101,7 @@ object CalibrationController {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
-      val bas = Frame.fromProcessed(frameSet.head.toArray)
+      val bas = FrameImage.fromProcessed(frameSet.head.toArray)
       bas.saveTiff("nucFrame_" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
@@ -120,7 +120,7 @@ object CalibrationController {
       minIndex
     }.toByte
     MeasurementController.measurement.dead = deadPixels
-    val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
+    val nucFrame = FrameImage.fromProcessed(idealNuc.map(_.toInt).toArray)
     nucFrame.saveTiff("nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
