@@ -107,7 +107,7 @@ object MeasurementController {
 
   def stdev(seq: Seq[Int]): Double = {
     val m = mean(seq)
-    spire.math.sqrt(seq.map(a => (a.toDouble - m) * (a.toDouble - m)).sum)
+    spire.math.sqrt(seq.map(a => (a.toDouble - m) * (a.toDouble - m)).sum / seq.length)
   }
 
   def measureNoise(): Unit = {
