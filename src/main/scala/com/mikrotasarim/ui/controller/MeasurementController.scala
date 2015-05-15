@@ -3,7 +3,7 @@ package com.mikrotasarim.ui.controller
 import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode, ResistanceMeasurementMode}
 import com.mikrotasarim.ui.model.Measurement
 
-import scalafx.beans.property.{BooleanProperty, StringProperty}
+import scalafx.beans.property.{DoubleProperty, BooleanProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
 
 object MeasurementController {
@@ -23,6 +23,8 @@ object MeasurementController {
 
     measurement.netd0 = (for (i <- 0 until 384 * 288) yield netds(i).head).toArray
     measurement.netd1 = (for (i <- 0 until 384 * 288) yield netds(i)(1)).toArray
+
+    netdDone.set(true)
   }
 
   def captureNetdImage(i: Int): Unit = {
@@ -116,9 +118,17 @@ object MeasurementController {
     measurement.noise = (for (i <- 0 until 384 * 288) yield stdev(for (j <- 0 until numFrames) yield frames(j)(i))).toArray
   }
 
+  val fNumber = StringProperty("1.2")
+  val detectorDimension = StringProperty("25")
+  val netdDone = BooleanProperty(value = false)
+
   def measureResponsivity(): Unit = {
+    val f = fNumber.value.toDouble
+    val dim = detectorDimension.value.toDouble * 0.000001
+    val area = dim * dim
+
     measurement.responsivity = (for (i <- 0 until 384 * 288) yield
-      (measurement.netdMeansT0(i) - measurement.netdMeansT1(i)) / (measurement.temp0 - measurement.temp1)
+      (measurement.netdDevsT0(i) * (4 * f * f + 1)) / (area * 2.62 * measurement.netd0(i))
       ).toArray
   }
 
