@@ -6,7 +6,7 @@ import scalafx.beans.property.StringProperty
 
 object ImageController {
 
-  val filePrefix = new StringProperty("")
+  val filePrefix = new StringProperty("~/Desktop")
   val sampleCount = new StringProperty("")
 
   def saveImages(): Unit = {
