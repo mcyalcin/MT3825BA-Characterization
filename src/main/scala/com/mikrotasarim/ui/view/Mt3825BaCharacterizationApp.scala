@@ -92,7 +92,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         correctionControls,
         new Separator,
         globalReferenceBiasSlider,
-//        pixelBiasSlider,
+        //        pixelBiasSlider,
         integrationTimeSlider,
         adcDelaySlider
       )
@@ -103,7 +103,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     new HBox {
       spacing = 10
       content = List(
-        new Label(label){
+        new Label(label) {
           prefWidth = 175
         },
         new Slider {
@@ -120,10 +120,14 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           prefWidth = 100
         },
         new Button("Apply") {
-          onAction = handle { apply() }
+          onAction = handle {
+            apply()
+          }
         },
         new Button("Default") {
-          onAction = handle { reset() }
+          onAction = handle {
+            reset()
+          }
         }
       )
     }
@@ -284,13 +288,40 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  def resistorMap: Node = new Button("Resistor Map") {
-    onAction = handle {
-      MeasurementController.createResistorMap()
-      MeasurementController.createReferenceResistorMap()
-      FpgaController.disconnectFromFpga()
-      FpgaController.connectToFpga()
-    }
+  def resistorMap: Node = new VBox {
+    spacing = 10
+    content = List(
+      new Button("Resistor Map") {
+        onAction = handle {
+          MeasurementController.createResistorMap()
+          MeasurementController.createReferenceResistorMap()
+          FpgaController.disconnectFromFpga()
+          FpgaController.connectToFpga()
+        }
+      },
+      new HBox {
+        spacing = 10
+        content = List(
+          new Label("Vdet:") {
+            prefWidth = 35
+          },
+          new Label() {
+            text <==> MeasurementController.vDet
+          }
+        )
+      },
+      new HBox {
+        spacing = 10
+        content = List(
+          new Label("Vref:") {
+            prefWidth = 35
+          },
+          new Label() {
+            text <==> MeasurementController.vRef
+          }
+        )
+      }
+    )
   }
 
   def noise: Node = new VBox {
@@ -425,7 +456,9 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   def saveButton: Node = new Button("Save Results") {
-    onAction = handle { MeasurementController.measurement.save("result.json") }
+    onAction = handle {
+      MeasurementController.measurement.save("result.json")
+    }
     // TODO: Add file selector for saving results
   }
 

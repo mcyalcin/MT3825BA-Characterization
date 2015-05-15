@@ -139,6 +139,9 @@ object MeasurementController {
   }
   def dc = FpgaController.deviceController
 
+  val vRef = StringProperty("Not set")
+  val vDet = StringProperty("Not set")
+
   def createResistorMap(): Unit = {
 
     def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
@@ -195,7 +198,9 @@ object MeasurementController {
     }
     dc.enableImagingMode()
 
-    val vmeas = findVmeas(2000, 1000, 3000, isDetector = true)
+    val vmeas = findVmeas(2000, 750, 3250, isDetector = true)
+
+    vDet.set(vmeas.toString)
 
     dc.setPixelMidpoint(vmeas - 8)
     val f1 = combineBytes(dc.getFrame)
@@ -278,7 +283,9 @@ object MeasurementController {
     }
     dc.enableImagingMode()
 
-    val vmeas = findVmeas(2000, 1000, 3000, isDetector = false)
+    val vmeas = findVmeas(2000, 750, 3250, isDetector = false)
+
+    vRef.set(vmeas.toString)
 
     dc.setPixelMidpoint(vmeas - 8)
     val f1 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
