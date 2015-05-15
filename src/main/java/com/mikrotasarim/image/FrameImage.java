@@ -8,16 +8,14 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class Frame {
+public class FrameImage {
 
     private short[] pixelArray;
 
-    public Frame(int[] pixelArray) {
+    public FrameImage(int[] pixelArray) {
         this.pixelArray = new short[384 * 288];
         for (int i = 0; i < 384 * 288; i++) {
             this.pixelArray[i] = (short) pixelArray[i];
-//            if(i == 50000) {this.pixelArray[i] = 0;}
-//            if(i == 50001) {this.pixelArray[i] = 16383;}
         }
     }
 
@@ -28,21 +26,32 @@ public class Frame {
         ImageIO.write(bufferedImage, "TIFF", file);
     }
 
+    public static void saveTiff(int xSize, int ySize, int[] pixels, String fileName) throws IOException {
+        short[] shortPixels = new short[xSize * ySize];
+        for (int i = 0; i < xSize * ySize; i++) {
+            shortPixels[i] = (short) pixels[i];
+        }
+        BufferedImage bufferedImage = new BufferedImage(384, 288, BufferedImage.TYPE_USHORT_GRAY);
+        bufferedImage.getRaster().setDataElements(0, 0, 384, 288, shortPixels);
+        File file = new File(fileName);
+        ImageIO.write(bufferedImage, "TIFF", file);
+    }
+
     public static void show(String fileName) {
         ImagePlus img = IJ.openImage(fileName);
         img.show();
         IJ.setMinAndMax(0,16383);
     }
 
-    public static Frame fromRaw(byte[] byteArray) {
+    public static FrameImage fromRaw(byte[] byteArray) {
         int[] pixelArray = new int[384 * 288];
         for (int i = 0; i < 384 * 288; i++) {
             pixelArray[i] = byteArray[2 * i] + byteArray[2 * i + 1] * 256;
         }
-        return new Frame(pixelArray);
+        return new FrameImage(pixelArray);
     }
 
-    public static Frame fromProcessed(int[] intArray) {
-        return new Frame(intArray);
+    public static FrameImage fromProcessed(int[] intArray) {
+        return new FrameImage(intArray);
     }
 }
