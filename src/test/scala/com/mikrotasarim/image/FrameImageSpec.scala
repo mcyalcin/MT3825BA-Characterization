@@ -2,7 +2,7 @@ package com.mikrotasarim.image
 
 import org.scalatest.{Matchers, FlatSpec}
 
-class FrameSpec extends FlatSpec with Matchers {
+class FrameImageSpec extends FlatSpec with Matchers {
 
   "A frame" should "be saved" in {
     val blackImage = Array.ofDim[Int](384 * 288)
