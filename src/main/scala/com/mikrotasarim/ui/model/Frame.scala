@@ -106,11 +106,11 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
 
   def topBotCut(targetDepth: Int): Frame = {
     val sorted = data.sorted
-    val min = sorted(sorted.length / 10 + 1)
-    val max = sorted(9 * sorted.length / 10 - 1)
+    val min = sorted(sorted.length / 10)
+    val max = sorted(9 * sorted.length / 10)
     val equalizedData = data.map(i =>
-      if (i > max) targetDepth - 1
-      else if (i < min) 0
+      if (i >= max) targetDepth - 1
+      else if (i <= min) 0
       else (i - min) * targetDepth / (max - min)
     )
     new Frame(xSize, ySize, equalizedData, targetDepth)
