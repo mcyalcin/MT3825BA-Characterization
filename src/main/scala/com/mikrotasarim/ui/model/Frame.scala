@@ -4,6 +4,8 @@ import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 
+import ij.{IJ, ImagePlus}
+
 object Frame {
   def createFromRaw(xSize: Int, ySize: Int, rawData: Seq[Byte], depth: Int): Frame = {
     def unsigned(b: Byte): Int = {
@@ -25,6 +27,17 @@ object Frame {
   def save(image: BufferedImage, fileName: String): Unit = {
     val file = new File(fileName)
     save(image, file)
+  }
+
+  def show16Bit(fileName: String): Unit = {
+    val img: ImagePlus = IJ.openImage(fileName)
+    img.show()
+  }
+
+  def show14Bit(fileName: String): Unit = {
+    val img: ImagePlus = IJ.openImage(fileName)
+    img.show()
+    IJ.setMinAndMax(0, 16383)
   }
 }
 
