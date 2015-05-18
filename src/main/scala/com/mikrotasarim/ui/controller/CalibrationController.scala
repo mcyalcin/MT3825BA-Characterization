@@ -102,6 +102,7 @@ object CalibrationController {
         }
       }
       val bas = Frame.fromProcessed(frameSet.head.toArray)
+      bas.saveTiff("nucFrame_" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
@@ -120,6 +121,7 @@ object CalibrationController {
     }.toByte
     MeasurementController.measurement.dead = deadPixels
     val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
+    nucFrame.saveTiff("nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte
