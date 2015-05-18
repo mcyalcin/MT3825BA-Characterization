@@ -37,6 +37,11 @@ public class FrameImage {
         ImageIO.write(bufferedImage, "TIFF", file);
     }
 
+    public static void save(BufferedImage image, String fileName) throws IOException {
+        File file = new File(fileName);
+        ImageIO.write(image, "TIFF", file);
+    }
+
     public static void show(String fileName) {
         ImagePlus img = IJ.openImage(fileName);
         img.show();
