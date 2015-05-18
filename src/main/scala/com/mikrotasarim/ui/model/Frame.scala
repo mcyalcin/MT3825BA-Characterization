@@ -28,4 +28,9 @@ class Frame(val xSize: Int, val ySize: Int, val rawData: Seq[Byte]) {
   def grayScale(): Unit = {
     // TODO
   }
+
+  def equalized(): Frame = {
+    // TODO
+    this
+  }
 }
