@@ -393,11 +393,11 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def xOriginBox: Node = box("x Origin", xOrigin)
 
-  def xSizeBox: Node = box("x Size", xSize)
+  def xSizeBox: Node = box("x Size", FpgaController.xSize)
 
   def yOriginBox: Node = box("y Origin", yOrigin)
 
-  def ySizeBox: Node = box("y Size", ySize)
+  def ySizeBox: Node = box("y Size", FpgaController.ySize)
 
   def imageSaveControls: Node = new VBox {
     spacing = 10

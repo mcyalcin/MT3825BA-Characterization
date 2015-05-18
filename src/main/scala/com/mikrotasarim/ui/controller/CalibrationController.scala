@@ -3,7 +3,7 @@ package com.mikrotasarim.ui.controller
 import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.NucMode
 import com.mikrotasarim.api.command.DeviceController
-import com.mikrotasarim.image.Frame
+import com.mikrotasarim.ui.model.Frame
 
 import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
@@ -88,6 +88,9 @@ object CalibrationController {
   val nucLabel = StringProperty("")
   val currentNucLabel = StringProperty("")
 
+  def xSize = FpgaController.xSize.value.toInt
+  def ySize = FpgaController.ySize.value.toInt
+
   def calculateAndApplyNuc(): Unit = {
     val dc = FpgaController.deviceController
     val nucCalibrationDistances = for (i <- 0 to 63) yield {
@@ -101,8 +104,8 @@ object CalibrationController {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
-      val bas = Frame.fromProcessed(frameSet.head.toArray)
-      bas.saveTiff("nucFrame_" + i + ".tif")
+      val bas = Frame.createFrom14Bit(xSize, ySize, frameSet.head.toArray)
+      bas.save("nucFrame_" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
         math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
@@ -120,8 +123,8 @@ object CalibrationController {
       minIndex
     }.toByte
     MeasurementController.measurement.dead = deadPixels
-    val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
-    nucFrame.saveTiff("nucFrame.tif")
+    val nucFrame = Frame.createFrom14Bit(xSize, ySize, idealNuc.map(_.toInt).toArray)
+    nucFrame.save("nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte

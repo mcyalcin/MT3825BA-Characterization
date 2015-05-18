@@ -1,6 +1,6 @@
 package com.mikrotasarim.ui.controller
 
-import com.mikrotasarim.image.Frame
+import com.mikrotasarim.ui.model.Frame
 
 import scalafx.beans.property.StringProperty
 
@@ -9,18 +9,20 @@ object ImageController {
   val filePrefix = new StringProperty("d:\\")
   val sampleCount = new StringProperty("")
 
+  def xSize = FpgaController.xSize.value.toInt
+  def ySize = FpgaController.ySize.value.toInt
+
   def saveImages(): Unit = {
     for (i <- 0 until sampleCount.value.toInt) {
-      val frame = Frame.fromProcessed(getImage)
-      frame.saveTiff(filePrefix.value + "_" + i + ".tif")
-      println("Sample " + filePrefix.value + "_" + i + ".tif saved.")
+      val frame = Frame.createFrom14Bit(xSize, ySize, getImage)
+      frame.save(filePrefix.value + "_" + i + ".tif")
     }
   }
 
   def openImage(): Unit = {
-    val frame = Frame.fromProcessed(getImage)
-    frame.saveTiff(filePrefix.value + "_temp.tif")
-    Frame.show(filePrefix.value + "_temp.tif")
+    val frame = Frame.createFrom14Bit(xSize, ySize, getImage)
+    frame.save(filePrefix.value + "_temp.tif")
+    Frame.show16Bit(filePrefix.value + "_temp.tif")
   }
 
   def getImage: Array[Int] = {
