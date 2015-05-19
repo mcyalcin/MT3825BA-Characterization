@@ -17,7 +17,7 @@ object Frame {
 
   def createFrom14Bit(xSize: Int, ySize: Int, data: Seq[Int]): Frame = {
     val depth = 16384
-    new Frame(xSize, ySize, data.map(_*4), depth * 4)
+    new Frame(xSize, ySize, data.map(_ * 4), depth * 4)
   }
 
   def save(image: BufferedImage, file: File): Unit = {
@@ -58,6 +58,8 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
   }
 
   def getThermo: BufferedImage = {
+    // TODO: Rewrite this clearly.
+    // TODO: Add other pseudo-coloring methods.
     val image = new BufferedImage(xSize, ySize, BufferedImage.TYPE_INT_RGB)
     val rgb = Array.ofDim[Int](data.length)
     val cut = depth / 4
@@ -131,7 +133,18 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
   }
 
   def withDepth(targetDepth: Int): Frame = {
-    val mappedData = data.map(i => i * (targetDepth - 1) / (depth-1))
+    val mappedData = data.map(i => i * (targetDepth - 1) / (depth - 1))
     new Frame(xSize, ySize, mappedData, targetDepth)
+  }
+
+  def normalized(): Frame = {
+    val max = data.max
+    val min = data.min
+    if (max - min == depth - 1) {
+      this
+    } else {
+      val mappedData = data.map(i => (i - min) * (depth - 1) / (max - min))
+      new Frame(xSize, ySize, mappedData, depth)
+    }
   }
 }
