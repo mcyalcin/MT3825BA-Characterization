@@ -63,7 +63,21 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
     val cut = depth / 4
     for (i <- 0 until data.length) {
       val pixel = data(i)
-      if (pixel < cut) {
+      if (pixel < 0) {
+        println("wtf")
+        val unsigned = pixel + depth
+        if (unsigned < 3 * cut) {
+          val red = 255 * (unsigned - 2 * cut + 1) / cut
+          val green = 255
+          val blue = 0
+          rgb(i) = red * 256 * 256 + green * 256 + blue
+        } else {
+          val red = 255
+          val green = 255 - (255 * (unsigned - 3 * cut + 1) / cut)
+          val blue = 0
+          rgb(i) = red * 256 * 256 + green * 256 + blue
+        }
+      } else if (pixel < cut) {
         val red = 0
         val green = 255 * pixel / (cut - 1)
         val blue = 255
@@ -74,7 +88,7 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
         val blue = 255 - (255 * (pixel - cut + 1) / cut)
         rgb(i) = red * 256 * 256 + green * 256 + blue
       } else if (pixel < 3 * cut) {
-        val red = 255 * (i - 2 * cut + 1) / cut
+        val red = 255 * (pixel - 2 * cut + 1) / cut
         val green = 255
         val blue = 0
         rgb(i) = red * 256 * 256 + green * 256 + blue
