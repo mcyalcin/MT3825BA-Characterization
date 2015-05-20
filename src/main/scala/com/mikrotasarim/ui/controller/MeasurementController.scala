@@ -332,23 +332,23 @@ object MeasurementController {
 
   selectedMeasurement.onChange((_,_,_) => {
     if (selectedMeasurement.value == "NETD") {
-      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getThermo, null))
+      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
       histogram.clear()
       histogram += diagonalFrame.histogramData(0,16383, 128)
     } else if (selectedMeasurement.value == "Resistor Map - Detectors") {
-      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
       histogram.clear()
       histogram += randomFrame.histogramData(0,16383, 128)
     } else if (selectedMeasurement.value == "Resistor Map - References") {
-      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
       histogram.clear()
       histogram += randomFrame.histogramData(0,16383, 128)
     } else if (selectedMeasurement.value == "Responsivity") {
-      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
       histogram.clear()
       histogram += randomFrame.histogramData(0,16383, 128)
     } else {
-      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
       histogram.clear()
       histogram += randomFrame.histogramData(0,16383, 128)
     }
@@ -362,6 +362,6 @@ object MeasurementController {
   for (i <- randomData.indices) randomData(i) = Random.nextInt(16383)
   val randomFrame = Frame.createFrom14Bit(384, 288, randomData)
 
-  val heatmap = ObjectProperty[Image](SwingFXUtils.toFXImage(diagonalFrame.getThermo, null))
+  val heatmap = ObjectProperty[Image](SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
   val histogram = ObservableBuffer[XYChart.Series[String, Number]](diagonalFrame.histogramData(0, 16383, 128))
 }

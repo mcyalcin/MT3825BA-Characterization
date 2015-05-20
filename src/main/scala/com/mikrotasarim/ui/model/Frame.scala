@@ -69,7 +69,7 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
     series
   }
 
-  def getThermo: BufferedImage = {
+  def getHeatmap: BufferedImage = {
     // TODO: Rewrite this clearly.
     // TODO: Add other pseudo-coloring methods.
     val image = new BufferedImage(xSize, ySize, BufferedImage.TYPE_INT_RGB)

@@ -44,15 +44,15 @@ class FrameSpec extends FlatSpec with Matchers {
   }
 
   it should "be saved as thermographic image" in {
-    Frame.save(blackFrame.getThermo, "ac.tif")
+    Frame.save(blackFrame.getHeatmap, "ac.tif")
     Frame.show16Bit("./ac.tif")
-    Frame.save(grayFrame.getThermo, "bc.tif")
+    Frame.save(grayFrame.getHeatmap, "bc.tif")
     Frame.show16Bit("./bc.tif")
-    Frame.save(whiteFrame.getThermo, "cc.tif")
+    Frame.save(whiteFrame.getHeatmap, "cc.tif")
     Frame.show16Bit("./cc.tif")
-    Frame.save(diagonalFrame.getThermo, "dc.tif")
+    Frame.save(diagonalFrame.getHeatmap, "dc.tif")
     Frame.show16Bit("./dc.tif")
-    Frame.save(randomFrame.getThermo, "ec.tif")
+    Frame.save(randomFrame.getHeatmap, "ec.tif")
     Frame.show16Bit("./ec.tif")
   }
   
