@@ -321,17 +321,23 @@ object MeasurementController {
   }
 
   val measurementLabels = ObservableBuffer(Seq(
-    "NETD",
+    "NETD T0",
+    "NETD T1",
     "Resistor Map - Detectors",
     "Resistor Map - References",
     "Responsivity",
     "Noise"
   ))
 
-  val selectedMeasurement = StringProperty("NETD")
+  val selectedMeasurement = StringProperty("NETD T0")
 
   selectedMeasurement.onChange((_,_,_) => {
-    if (selectedMeasurement.value == "NETD") {
+    // TODO: Work out how to convert these values to frames
+    if (selectedMeasurement.value == "NETD T0") {
+      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
+      histogram.clear()
+      histogram += diagonalFrame.histogramData(0,16383, 128)
+    } else if (selectedMeasurement.value == "NETD T1") {
       heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
       histogram.clear()
       histogram += diagonalFrame.histogramData(0,16383, 128)

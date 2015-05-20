@@ -4,7 +4,7 @@ import com.mikrotasarim.api.device.DeviceNotFoundException
 import com.mikrotasarim.ui.controller.CalibrationController._
 import com.mikrotasarim.ui.controller.FpgaController._
 import com.mikrotasarim.ui.controller.ImageController._
-import com.mikrotasarim.ui.controller.{FpgaController, CalibrationController, MeasurementController}
+import com.mikrotasarim.ui.controller.{ImageController, FpgaController, CalibrationController, MeasurementController}
 import com.mikrotasarim.ui.model.{Measurement, MemoryMap}
 import org.controlsfx.dialog.Dialogs
 
@@ -45,7 +45,11 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         .masthead("Unhandled Error")
         .message(e.getMessage)
         .showException(e)
-      case _ => println("???")
+      case _ => Dialogs.create()
+        .title("Problem")
+        .masthead("Unhandled Problem")
+        .message(e.getMessage)
+        .showException(e)
     }
   }
 
@@ -68,7 +72,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       new Tab {
         text = "Image"
         closable = false
-        content = imageControlPanel
+        content = imageTab
       },
       new Tab {
         text = "Calibration"
@@ -112,7 +116,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     image <== MeasurementController.heatmap
   }
 
-  // TODO
   def histogramChart: Node = new BarChart(CategoryAxis(), NumberAxis(), MeasurementController.histogram) {
     animated = false
   }
@@ -380,6 +383,14 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
+  def imageTab: Node = new HBox {
+    spacing = 10
+    content = Seq(
+      imageControlPanel,
+      currentImage
+    )
+  }
+
   def imageControlPanel: Node = new ScrollPane {
     content = new VBox {
       padding = Insets(10)
@@ -393,6 +404,10 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         imageOpenButton
       )
     }
+  }
+
+  def currentImage: Node = new ImageView() {
+    image <== ImageController.currentImage
   }
 
   def windowingControls: Node = new VBox {
@@ -452,7 +467,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def imageOpenButton: Node = new Button("Open") {
     onAction = handle {
-      openImage()
+      refreshImage()
     }
   }
 
