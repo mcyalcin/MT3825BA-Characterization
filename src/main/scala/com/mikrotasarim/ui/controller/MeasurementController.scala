@@ -11,7 +11,7 @@ import scalafx.collections.ObservableBuffer
 
 import javafx.scene.image.Image
 
-import scalafx.scene.chart.XYChart
+import javafx.scene.chart.XYChart
 
 object MeasurementController {
   def measureNetd(): Unit = {
@@ -214,7 +214,7 @@ object MeasurementController {
     dc.setPixelMidpoint(vmeas + 8)
     val f2 = combineBytes(dc.getFrame)
 
-    val s1 = for (i <- 0 until f1.length) yield f2(i) - f1(i)
+    val s1 = for (i <- f1.indices) yield f2(i) - f1(i)
 
     dc.setIntegrationTime(0)
     dc.setPixelMidpoint(vmeas - 8)
@@ -222,14 +222,14 @@ object MeasurementController {
     dc.setPixelMidpoint(vmeas + 8)
     val f4 = combineBytes(dc.getFrame)
 
-    val s2 = for (i <- 0 until f3.length) yield f4(i) - f3(i)
+    val s2 = for (i <- f3.indices) yield f4(i) - f3(i)
 
-    val deltaV = for (i <- 0 until f1.length) yield math.abs(f1(i) - f3(i))
+    val deltaV = for (i <- f1.indices) yield math.abs(f1(i) - f3(i))
 
     val tint: Double = 0.00001
     val cint: Double = 0.000000000031
     val k: Double = 270.0
-    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble + 0.000000001)) - (k / (deltaV(i).toDouble + 0.000000001)))
+    val r = for (i <- f1.indices) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble + 0.000000001)) - (k / (deltaV(i).toDouble + 0.000000001)))
 
     measurement.resistorMap = r.toArray
   }
@@ -295,27 +295,27 @@ object MeasurementController {
     vRef.set(vmeas.toString)
 
     dc.setPixelMidpoint(vmeas - 8)
-    val f1 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+    val f1 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
     dc.setPixelMidpoint(vmeas + 8)
-    val f2 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+    val f2 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
 
-    val s1 = for (i <- 0 until f1.length) yield f2(i) - f1(i)
+    val s1 = for (i <- f1.indices) yield f2(i) - f1(i)
 
     dc.setIntegrationTime(0)
     dc.setPixelMidpoint(vmeas - 8)
-    val f3 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+    val f3 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
     dc.setPixelMidpoint(vmeas + 8)
-    val f4 = combineBytes(dc.getFrame).drop(384*11).take(384*12)
+    val f4 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
 
-    val s2 = for (i <- 0 until f3.length) yield f4(i) - f3(i)
+    val s2 = for (i <- f3.indices) yield f4(i) - f3(i)
 
-    val deltaV = for (i <- 0 until f1.length) yield math.abs(f1(i) - f3(i))
+    val deltaV = for (i <- f1.indices) yield math.abs(f1(i) - f3(i))
 
     import spire.implicits._
     val tint: Double = (10.0 pow -6) * 10
     val cint: Double = (10.0 pow -12) * 31
     val k: Double = 166.0 // Old Value : 196
-    val r = for (i <- 0 until f1.length) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble + 0.000000001)) - (k / (deltaV(i).toDouble + 0.000000001)))
+    val r = for (i <- f1.indices) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble + 0.000000001)) - (k / (deltaV(i).toDouble + 0.000000001)))
 
     measurement.referenceResistorMap = r.toArray
   }
@@ -330,22 +330,27 @@ object MeasurementController {
 
   val selectedMeasurement = StringProperty("NETD")
 
-  selectedMeasurement.onChange({
+  selectedMeasurement.onChange((_,_,_) => {
     if (selectedMeasurement.value == "NETD") {
       heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getThermo, null))
-//      histogram.set(diagonalFrame.histogramData(0, 16383, 128))
+      histogram.clear()
+      histogram += diagonalFrame.histogramData(0,16383, 128)
     } else if (selectedMeasurement.value == "Resistor Map - Detectors") {
       heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
-//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+      histogram.clear()
+      histogram += randomFrame.histogramData(0,16383, 128)
     } else if (selectedMeasurement.value == "Resistor Map - References") {
       heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
-//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+      histogram.clear()
+      histogram += randomFrame.histogramData(0,16383, 128)
     } else if (selectedMeasurement.value == "Responsivity") {
       heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
-//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+      histogram.clear()
+      histogram += randomFrame.histogramData(0,16383, 128)
     } else {
       heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
-//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+      histogram.clear()
+      histogram += randomFrame.histogramData(0,16383, 128)
     }
   })
 
@@ -354,9 +359,9 @@ object MeasurementController {
   val diagonalFrame = Frame.createFrom14Bit(384, 288, diagonalData)
 
   val randomData = Array.ofDim[Int](384*288)
-  for (i <- 0 until randomData.length) randomData(i) = Random.nextInt(16384)
+  for (i <- randomData.indices) randomData(i) = Random.nextInt(16383)
   val randomFrame = Frame.createFrom14Bit(384, 288, randomData)
 
   val heatmap = ObjectProperty[Image](SwingFXUtils.toFXImage(diagonalFrame.getThermo, null))
-  val histogram = diagonalFrame.histogramData(0, 16383, 128)
+  val histogram = ObservableBuffer[XYChart.Series[String, Number]](diagonalFrame.histogramData(0, 16383, 128))
 }

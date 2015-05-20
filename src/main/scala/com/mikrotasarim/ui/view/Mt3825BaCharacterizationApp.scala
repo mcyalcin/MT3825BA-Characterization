@@ -113,8 +113,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   // TODO
-  def histogramChart: Node = new BarChart(CategoryAxis(), NumberAxis()) {
-    data = MeasurementController.histogram
+  def histogramChart: Node = new BarChart(CategoryAxis(), NumberAxis(), MeasurementController.histogram) {
+    animated = false
   }
 
   // TODO

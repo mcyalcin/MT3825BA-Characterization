@@ -19,12 +19,12 @@ class FrameSpec extends FlatSpec with Matchers {
   val diagonalFrame = Frame.createFrom14Bit(384, 288, diagonalData)
 
   val randomData = Array.ofDim[Int](384*288)
-  for (i <- 0 until randomData.length) randomData(i) = Random.nextInt(16384)
+  for (i <- randomData.indices) randomData(i) = Random.nextInt(16383)
   val randomFrame = Frame.createFrom14Bit(384, 288, randomData)
 
   "A frame" should "do equalization as defined" in {
     val frameData = Array.ofDim[Int](384*288)
-    for (i <- 0 until frameData.length) frameData(i)=i
+    for (i <- frameData.indices) frameData(i)=i
     val frame = new Frame(384, 288, frameData, 16384)
     val equalized = frame.topBotCut(16384)
 //    for (i <- 0 until equalized.data.length) println(equalized.data(i))

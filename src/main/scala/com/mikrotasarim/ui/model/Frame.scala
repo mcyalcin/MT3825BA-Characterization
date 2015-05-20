@@ -49,7 +49,7 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
 
   def histogram(): IndexedSeq[Int] = {
     val hist = Array.ofDim[Int](depth)
-    for (i <- 0 until data.length) {
+    for (i <- data.indices) {
       hist(data(i)) += 1
     }
     hist
@@ -75,7 +75,7 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
     val image = new BufferedImage(xSize, ySize, BufferedImage.TYPE_INT_RGB)
     val rgb = Array.ofDim[Int](data.length)
     val cut = depth / 4
-    for (i <- 0 until data.length) {
+    for (i <- data.indices) {
       val pixel = data(i)
       if (pixel < 0) {
         println("wtf")
