@@ -14,13 +14,14 @@ import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.geometry.Insets
 import scalafx.scene.control._
+import scalafx.scene.image.ImageView
 import scalafx.scene.layout._
 import scalafx.scene.{Node, Scene}
 
 object Mt3825BaCharacterizationApp extends JFXApp {
-
+  // TODO: Divide this up.
+  // TODO: Consider changing the entry point of the application to facilitate a more flexible ui definition.
   object MyUncaughtExceptionHandler extends Thread.UncaughtExceptionHandler {
-    // TODO: Expand this
     def uncaughtException(thread: Thread, e: Throwable): Unit = e match {
       case e: UnsatisfiedLinkError => Dialogs.create()
         .title("Error")
@@ -59,8 +60,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  stage.setMaximized(true)
-
   def controlTabs: Node = new TabPane {
     disable <== !deviceConnected
     tabs = List(
@@ -77,10 +76,50 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       new Tab {
         text = "Measurement"
         closable = false
-        content = measurementControlPanel
+        content = measurementTab
       }
     )
   }
+
+  def measurementTab: Node = new HBox {
+    spacing = 10
+    content = Seq(
+      measurementControlPanel,
+      measurementDisplay
+    )
+  }
+
+  def measurementDisplay: Node = new ScrollPane {
+    content = new VBox {
+      padding = Insets(10)
+      spacing = 20
+      content = Seq(
+        measurementDisplaySelector,
+        heatmapChart,
+        histogramChart,
+        measurementFrameSaveControl
+      )
+    }
+  }
+
+  def measurementDisplaySelector: Node = new ChoiceBox(MeasurementController.measurementLabels) {
+    value <==> MeasurementController.selectedMeasurement
+  }
+  // TODO
+  def heatmapChart: Node = {
+    val myImageView = new ImageView() {
+      image <== MeasurementController.heatmap
+    }
+    myImageView
+  }
+  // TODO
+  def histogramChart: Node = new Button("Push me for a change") {
+    onAction = handle {
+      MeasurementController.changeImage()
+    }
+  }
+  // TODO
+  def measurementFrameSaveControl: Node = new HBox()
 
   def calibrationControlPanel: Node = new ScrollPane {
     content = new VBox {
@@ -99,7 +138,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String, apply: () => Unit, reset: () => Unit): Node =
+  def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String, apply: () => Unit, reset: () => Unit): Node = {
     new HBox {
       spacing = 10
       content = List(
@@ -131,6 +170,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         }
       )
     }
+  }
 
   def globalReferenceBiasSlider = labeledSnappingSliderGroup("Global Reference Bias", CalibrationController.globalReferenceBias, 0, 3000, 1, "mV", CalibrationController.applyGlobalReferenceBias, CalibrationController.resetGlobalReferenceBias)
 
@@ -146,6 +186,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       spacing = 10
       content = List(
         new CheckBox("Enable Correction") {
+          disable <== !Measurement.darkImageSet
           selected <==> correctionEnabled
         },
         new RadioButton("1 point") {

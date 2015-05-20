@@ -1,10 +1,15 @@
 package com.mikrotasarim.ui.controller
 
-import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode, ResistanceMeasurementMode}
-import com.mikrotasarim.ui.model.Measurement
+import javafx.embed.swing.SwingFXUtils
 
-import scalafx.beans.property.{DoubleProperty, BooleanProperty, StringProperty}
+import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode, ResistanceMeasurementMode}
+import com.mikrotasarim.ui.model.{Frame, Measurement}
+
+import scala.util.Random
+import scalafx.beans.property.{ObjectProperty, BooleanProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
+
+import javafx.scene.image.Image
 
 object MeasurementController {
   def measureNetd(): Unit = {
@@ -312,4 +317,32 @@ object MeasurementController {
 
     measurement.referenceResistorMap = r.toArray
   }
+
+  val measurementLabels = ObservableBuffer(Seq(
+    "NETD",
+    "Resistor Map - Detectors",
+    "Resistor Map - References",
+    "Responsivity",
+    "Noise"
+  ))
+
+  val selectedMeasurement = StringProperty("NETD")
+
+  selectedMeasurement.onChange({
+    println(selectedMeasurement.value)
+  })
+
+  val diagonalData = Array.ofDim[Int](384*288)
+  for (i <- 0 until 384) for (j <- 0 until 288) diagonalData(j * 384 + i) = 8192 * i / 383 + 8192 * j / 287
+  val diagonalFrame = Frame.createFrom14Bit(384, 288, diagonalData)
+
+  val randomData = Array.ofDim[Int](384*288)
+  for (i <- 0 until randomData.length) randomData(i) = Random.nextInt(16384)
+  val randomFrame = Frame.createFrom14Bit(384, 288, randomData)
+
+  def changeImage(): Unit = {
+    heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+  }
+
+  val heatmap = ObjectProperty[Image](SwingFXUtils.toFXImage(diagonalFrame.getThermo, null))
 }

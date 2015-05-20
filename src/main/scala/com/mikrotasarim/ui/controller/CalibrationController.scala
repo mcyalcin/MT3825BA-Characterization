@@ -57,8 +57,8 @@ object CalibrationController {
     "Partition 10",
     "Partition 11",
     "Partition 12"
-  )
-  )
+  ))
+
   val selectedPartition = StringProperty("Partition 1")
 
   selectedPartition.onChange({
@@ -89,6 +89,7 @@ object CalibrationController {
   val currentNucLabel = StringProperty("")
 
   def xSize = FpgaController.xSize.value.toInt
+
   def ySize = FpgaController.ySize.value.toInt
 
   def calculateAndApplyNuc(): Unit = {
@@ -107,7 +108,7 @@ object CalibrationController {
       val bas = Frame.createFrom14Bit(xSize, ySize, frameSet.head.toArray)
       bas.save("nucFrame_" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
-        math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
+      math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
     }
     val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
