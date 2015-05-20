@@ -6,6 +6,8 @@ import javax.imageio.ImageIO
 
 import ij.{IJ, ImagePlus}
 
+import scalafx.scene.chart.XYChart
+
 object Frame {
   def createFromRaw(xSize: Int, ySize: Int, rawData: Seq[Byte], depth: Int): Frame = {
     def unsigned(b: Byte): Int = {
@@ -53,8 +55,18 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
     hist
   }
 
-  def histogramData(min: Int, max: Int, steps: Int): Unit = {
-    // TODO: Return type should be data binding value for a scalafx chart
+  def histogramData(min: Int, max: Int, steps: Int): XYChart.Series[String, Number] = {
+    require(steps <= max - min)
+    val hist = this.withDepth(steps).histogram()
+    val stepSize = (max - min) / steps
+    val labels = min until max by stepSize
+    val series = new XYChart.Series[String, Number] {
+      name = "Histogram"
+      data = labels zip hist map {
+        case (x,y) => XYChart.Data[String, Number](x.toString, y)
+      }
+    }
+    series
   }
 
   def getThermo: BufferedImage = {
