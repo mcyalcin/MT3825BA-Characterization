@@ -11,6 +11,8 @@ import scalafx.collections.ObservableBuffer
 
 import javafx.scene.image.Image
 
+import scalafx.scene.chart.XYChart
+
 object MeasurementController {
   def measureNetd(): Unit = {
     def netd(m0: Double, m1: Double, u0: Double, u1: Double, t0: Double, t1: Double): Seq[Double] =
@@ -329,7 +331,22 @@ object MeasurementController {
   val selectedMeasurement = StringProperty("NETD")
 
   selectedMeasurement.onChange({
-    println(selectedMeasurement.value)
+    if (selectedMeasurement.value == "NETD") {
+      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getThermo, null))
+//      histogram.set(diagonalFrame.histogramData(0, 16383, 128))
+    } else if (selectedMeasurement.value == "Resistor Map - Detectors") {
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+    } else if (selectedMeasurement.value == "Resistor Map - References") {
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+    } else if (selectedMeasurement.value == "Responsivity") {
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+    } else {
+      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
+//      histogram.set(randomFrame.histogramData(0, 16383, 128))
+    }
   })
 
   val diagonalData = Array.ofDim[Int](384*288)
@@ -340,9 +357,6 @@ object MeasurementController {
   for (i <- 0 until randomData.length) randomData(i) = Random.nextInt(16384)
   val randomFrame = Frame.createFrom14Bit(384, 288, randomData)
 
-  def changeImage(): Unit = {
-    heatmap.set(SwingFXUtils.toFXImage(randomFrame.getThermo, null))
-  }
-
   val heatmap = ObjectProperty[Image](SwingFXUtils.toFXImage(diagonalFrame.getThermo, null))
+  val histogram = diagonalFrame.histogramData(0, 16383, 128)
 }

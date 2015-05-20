@@ -13,12 +13,14 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.geometry.Insets
+import scalafx.scene.chart.{CategoryAxis, NumberAxis, BarChart}
 import scalafx.scene.control._
 import scalafx.scene.image.ImageView
 import scalafx.scene.layout._
 import scalafx.scene.{Node, Scene}
 
 object Mt3825BaCharacterizationApp extends JFXApp {
+
   // TODO: Divide this up.
   // TODO: Consider changing the entry point of the application to facilitate a more flexible ui definition.
   object MyUncaughtExceptionHandler extends Thread.UncaughtExceptionHandler {
@@ -105,19 +107,16 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   def measurementDisplaySelector: Node = new ChoiceBox(MeasurementController.measurementLabels) {
     value <==> MeasurementController.selectedMeasurement
   }
-  // TODO
-  def heatmapChart: Node = {
-    val myImageView = new ImageView() {
-      image <== MeasurementController.heatmap
-    }
-    myImageView
+
+  def heatmapChart: Node = new ImageView() {
+    image <== MeasurementController.heatmap
   }
+
   // TODO
-  def histogramChart: Node = new Button("Push me for a change") {
-    onAction = handle {
-      MeasurementController.changeImage()
-    }
+  def histogramChart: Node = new BarChart(CategoryAxis(), NumberAxis()) {
+    data = MeasurementController.histogram
   }
+
   // TODO
   def measurementFrameSaveControl: Node = new HBox()
 
