@@ -96,23 +96,109 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   def measurementDisplay: Node = new ScrollPane {
-    content = new VBox {
+    content = new HBox {
       padding = Insets(10)
       spacing = 20
       content = Seq(
-        measurementDisplaySelector,
-        heatmapChart,
-        histogramChart,
-        measurementFrameSaveControl
+        heatmapBox,
+        histogramBox
       )
     }
+  }
+
+  def heatmapBox: Node = new VBox {
+    spacing = 10
+    content = Seq(
+      measurementDisplaySelector,
+      new HBox {
+        spacing = 10
+        content = Seq(
+          measurementMinCutoff,
+          measurementMaxCutoff
+        )
+      },
+      heatmapImage
+    )
+  }
+
+  def measurementMinCutoff: Node = new TextField {
+    text <==> MeasurementController.measurementDisplayMin
+  }
+
+  def measurementMaxCutoff: Node = new TextField {
+    text <==> MeasurementController.measurementDisplayMax
+  }
+
+  def histogramBox: Node = new VBox {
+    spacing = 10
+    content = Seq(
+      histogramParameters,
+      histogramChart,
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Mean: "),
+          new Label {
+            text <==> MeasurementController.displayMean
+          }
+        )
+      },
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Peak: "),
+          new Label {
+            text <==> MeasurementController.displayPeak
+          }
+        )
+      }
+    )
+  }
+
+  def histogramParameters = new VBox {
+    spacing = 10
+    content = Seq(
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Min: ") {
+            prefWidth = 80
+          },
+          new TextField {
+            text <==> MeasurementController.histogramMin
+          }
+        )
+      },
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Max: ") {
+            prefWidth = 80
+          },
+          new TextField {
+            text <==> MeasurementController.histogramMax
+          }
+        )
+      },
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Bin Count: ") {
+            prefWidth = 80
+          },
+          new TextField {
+            text <==> MeasurementController.histogramBinCount
+          }
+        )
+      }
+    )
   }
 
   def measurementDisplaySelector: Node = new ChoiceBox(MeasurementController.measurementLabels) {
     value <==> MeasurementController.selectedMeasurement
   }
 
-  def heatmapChart: Node = new ImageView() {
+  def heatmapImage: Node = new ImageView() {
     image <== MeasurementController.heatmap
   }
 
@@ -220,6 +306,9 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     content = List(
       nucLabelBox,
       partitionSelector,
+      new TextField {
+        text <==> CalibrationController.nucCalibrationTargetValue
+      },
       new Button("Calculate and Save") {
         onAction = handle {
           calculateAndApplyNuc()
@@ -244,6 +333,10 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         text <==> currentNucLabel
       }
     )
+  }
+
+  def modelSelector: Node = new ChoiceBox(modelLabels) {
+    value <==> selectedModel
   }
 
   def bitfileSelector: Node = new ChoiceBox(bitfileLabels) {
@@ -493,6 +586,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     padding = Insets(10)
     spacing = 20
     content = List(
+      modelSelector,
       bitfileSelector,
       connectButton,
       disconnectButton,
