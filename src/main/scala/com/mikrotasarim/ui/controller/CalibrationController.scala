@@ -92,6 +92,8 @@ object CalibrationController {
 
   def ySize = FpgaController.ySize.value.toInt
 
+  val nucCalibrationTargetValue = StringProperty("8192")
+
   def calculateAndApplyNuc(): Unit = {
     val dc = FpgaController.deviceController
     val nucCalibrationDistances = for (i <- 0 to 63) yield {
@@ -108,7 +110,7 @@ object CalibrationController {
       val bas = Frame.createFrom14Bit(xSize, ySize, frameSet.head.toArray)
       bas.save("nucFrame_" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
-      math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
+      math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - nucCalibrationTargetValue.value.toInt)
     }
     val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
