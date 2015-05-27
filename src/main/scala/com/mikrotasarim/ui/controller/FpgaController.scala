@@ -39,18 +39,24 @@ object FpgaController {
   }
 
   val bitfiles = Map(
-    "Package" -> "mt3825ba_a0_package.bit",
-    "Dewar" -> "mt3825ba_a0_dewar.bit"
+    ("A0", "Package") -> "mt3825ba_a0_package.bit",
+    ("A0", "Dewar") -> "mt3825ba_a0_dewar.bit",
+    ("A1", "Package") -> "mt3825ba_a1_package.bit",
+    ("A1", "Dewar") -> "mt3825ba_a1_dewar.bit",
+    ("B0", "Package") -> "mt3825ba_b0_package.bit",
+    ("B0", "Dewar") -> "mt3825ba_b0_dewar.bit"
   )
 
-  val bitfileLabels = ObservableBuffer(bitfiles.keySet.toList)
+  val bitfileLabels = ObservableBuffer(bitfiles.keySet.map(_._2).toList)
+  val modelLabels = ObservableBuffer(bitfiles.keySet.map(_._1).toList)
 
+  val selectedModel = StringProperty("A0")
   val selectedBitfile = StringProperty("Package")
 
   def connectToFpga(): Unit = {
     deviceController = if (!isSelfTest.value) {
       if (device == null) {
-        device = new OpalKellyInterface(bitfiles(selectedBitfile.value))
+        device = new OpalKellyInterface(bitfiles(selectedModel.value, selectedBitfile.value))
       }
       new DeviceController(device)
     } else {
