@@ -164,6 +164,10 @@ object MeasurementController {
     dc.setReset()
     dc.clearReset()
     dc.initializeRoic()
+    dc.setNucMode(NucMode.Fixed,255)
+    dc.sendReferenceDataToRoic()
+    dc.setTriggerMode(TriggerMode.Slave_Software)
+    dc.setNucMode(NucMode.Enabled)
     if (FpgaController.isCmosTest.value) {
       dc.writeToRoicMemory(17,3)
     }
@@ -180,8 +184,8 @@ object MeasurementController {
     val nuc = CalibrationController.currentNuc
     // TODO: check this for sign issues. shouldn't be a problem up to 63 where we work.
     val shiftedNuc = nuc.map(a => a.map(n=> (if (n > 31) n-24 else n+24).toByte))
-    dc.setActiveFlashPartition(1)
     dc.disableImagingMode()
+    dc.setActiveFlashPartition(1)
     dc.eraseActiveFlashPartition()
     dc.writeFrameToFlashMemory(shiftedNuc)
     dc.setNucMode(NucMode.Enabled)
@@ -190,8 +194,8 @@ object MeasurementController {
     val k = 176170000.0
     val r = for (i <- frame0.indices) yield k / (frame0(i) - frame1(i))
     measurement.resistorMap = r.toArray
-    dc.setActiveFlashPartition(0)
     dc.disableImagingMode()
+    dc.setActiveFlashPartition(0)
     dc.eraseActiveFlashPartition()
     dc.writeFrameToFlashMemory(shiftedNuc)
     dc.setNucMode(NucMode.Enabled)
