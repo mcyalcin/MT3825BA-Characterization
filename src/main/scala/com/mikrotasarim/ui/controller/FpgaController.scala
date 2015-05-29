@@ -77,7 +77,6 @@ object FpgaController {
     deviceController.setNucMode(NucMode.Enabled)
     deviceController.setAdcDelay(2)
     deviceController.writeToRoicMemory(22,2047)
-    deviceController.writeToRoicMemory(18,4)
     deviceController.setGlobalReferenceBias(3500)
     deviceController.setSamplingDelay(4)
     deviceController.enableImagingMode()

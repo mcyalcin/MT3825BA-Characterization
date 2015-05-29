@@ -151,7 +151,7 @@ object MeasurementController {
   val vDet = StringProperty("Not set")
 
   def createResistorMap(): Unit = {
-    if (FpgaController.selectedBitfile.value == "A1") {
+    if (FpgaController.selectedModel.value == "A1") {
       createA1ResistorMaps()
     } else {
       createA0ResistorMap()
@@ -160,9 +160,13 @@ object MeasurementController {
   }
 
   def createA1ResistorMaps(): Unit = {
+    dc.disableImagingMode()
     dc.setReset()
     dc.clearReset()
     dc.initializeRoic()
+    if (FpgaController.isCmosTest.value) {
+      dc.writeToRoicMemory(17,3)
+    }
     val ones = Array.fill[Byte](384*2)(255.toByte)
     dc.updateReferenceData(ones)
     dc.setIntegrationTime(30)
@@ -170,6 +174,7 @@ object MeasurementController {
     dc.setGlobalReferenceBias(1365)
     dc.setPixelBiasRange(1248)
     dc.setActiveFlashPartition(0)
+    dc.enableImagingMode()
     CalibrationController.calculateAndApplyNuc()
     val frame0 = combineBytes(dc.getFullFrame)
     val nuc = CalibrationController.currentNuc
@@ -182,7 +187,7 @@ object MeasurementController {
     dc.setNucMode(NucMode.Enabled)
     dc.enableImagingMode()
     val frame1 = combineBytes(dc.getFullFrame)
-    val k = 0.000000017617
+    val k = 176170000.0
     val r = for (i <- frame0.indices) yield k / (frame0(i) - frame1(i))
     measurement.resistorMap = r.toArray
     dc.setActiveFlashPartition(0)
