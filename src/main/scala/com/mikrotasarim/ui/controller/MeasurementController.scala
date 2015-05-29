@@ -151,6 +151,54 @@ object MeasurementController {
   val vDet = StringProperty("Not set")
 
   def createResistorMap(): Unit = {
+    if (FpgaController.selectedBitfile.value == "A1") {
+      createA1ResistorMaps()
+    } else {
+      createA0ResistorMap()
+      createA0ReferenceResistorMap()
+    }
+  }
+
+  def createA1ResistorMaps(): Unit = {
+    dc.setReset()
+    dc.clearReset()
+    dc.initializeRoic()
+    val ones = Array.fill[Byte](384*2)(255.toByte)
+    dc.updateReferenceData(ones)
+    dc.setIntegrationTime(30)
+    dc.setPixelGain(31)
+    dc.setGlobalReferenceBias(1365)
+    dc.setPixelBiasRange(1248)
+    dc.setActiveFlashPartition(0)
+    CalibrationController.calculateAndApplyNuc()
+    val frame0 = combineBytes(dc.getFullFrame)
+    val nuc = CalibrationController.currentNuc
+    // TODO: check this for sign issues. shouldn't be a problem up to 63 where we work.
+    val shiftedNuc = nuc.map(a => a.map(n=> (if (n > 31) n-24 else n+24).toByte))
+    dc.setActiveFlashPartition(1)
+    dc.disableImagingMode()
+    dc.eraseActiveFlashPartition()
+    dc.writeFrameToFlashMemory(shiftedNuc)
+    dc.setNucMode(NucMode.Enabled)
+    dc.enableImagingMode()
+    val frame1 = combineBytes(dc.getFullFrame)
+    val k = 0.000000017617
+    val r = for (i <- frame0.indices) yield k / (frame0(i) - frame1(i))
+    measurement.resistorMap = r.toArray
+    dc.setActiveFlashPartition(0)
+    dc.disableImagingMode()
+    dc.eraseActiveFlashPartition()
+    dc.writeFrameToFlashMemory(shiftedNuc)
+    dc.setNucMode(NucMode.Enabled)
+    dc.enableImagingMode()
+    val frameR0 = combineBytes(dc.getFullFrame)
+    dc.setGlobalReferenceBias(1501)
+    val frameR1 = combineBytes(dc.getFullFrame)
+    val rr = for (i <- frameR0.indices) yield k / (frameR0(i) - frameR1(i))
+    measurement.referenceResistorMap = rr.toArray
+  }
+
+  def createA0ResistorMap(): Unit = {
 
     def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
       def isVmeas(vmid: Int): Int = {
@@ -235,7 +283,7 @@ object MeasurementController {
     measurement.resistorMap = r.toArray
   }
 
-  def createReferenceResistorMap(): Unit = {
+  def createA0ReferenceResistorMap(): Unit = {
 
     def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
       def isVmeas(vmid: Int): Int = {

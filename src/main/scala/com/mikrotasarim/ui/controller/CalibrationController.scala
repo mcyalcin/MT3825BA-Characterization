@@ -62,6 +62,7 @@ object CalibrationController {
   val selectedPartition = StringProperty("Partition 1")
 
   selectedPartition.onChange({
+    // TODO: update currentNuc here.
     currentNucLabel.value = nucFrames(partitionToIndex(selectedPartition.value)).getOrElse(new NucFrame("", null, null)).name
     dc.disableImagingMode()
     FpgaController.deviceController.setActiveFlashPartition(partitionToIndex(selectedPartition.value))
@@ -135,10 +136,13 @@ object CalibrationController {
     dc.disableImagingMode()
     dc.eraseActiveFlashPartition()
     dc.writeFrameToFlashMemory(frame)
+    currentNuc = frame
     dc.setNucMode(NucMode.Enabled)
     dc.enableImagingMode()
     nucFrames(partitionToIndex(selectedPartition.value)) = Some(new NucFrame(nucLabel.value, frame, deadPixels))
     currentNucLabel.value = nucLabel.value
     nucLabel.value = ""
   }
+
+  var currentNuc = Array.ofDim[Byte](288, 384)
 }

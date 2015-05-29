@@ -51,6 +51,9 @@ object FpgaController {
   val modelLabels = ObservableBuffer(bitfiles.keySet.map(_._1).toList)
 
   val selectedModel = StringProperty("A0")
+
+
+  val a0Selected = BooleanProperty(value = true)
   val selectedBitfile = StringProperty("Package")
 
   def connectToFpga(): Unit = {

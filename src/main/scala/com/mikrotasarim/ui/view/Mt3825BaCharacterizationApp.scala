@@ -219,7 +219,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         correctionControls,
         new Separator,
         globalReferenceBiasSlider,
-        //        pixelBiasSlider,
+//        pixelBiasSlider,
         integrationTimeSlider,
         adcDelaySlider
       )
@@ -430,7 +430,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       new Button("Resistor Map") {
         onAction = handle {
           MeasurementController.createResistorMap()
-          MeasurementController.createReferenceResistorMap()
           FpgaController.disconnectFromFpga()
           FpgaController.connectToFpga()
         }
