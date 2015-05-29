@@ -17,11 +17,11 @@ object CalibrationController {
   def applyIntegrationTime(): Unit = dc.setIntegrationTime(integrationTime.value * 3)
 
   def resetPixelBiasRange(): Unit = {
-    pixelBiasRange.set(55)
+    pixelBiasX.set(800)
     applyPixelBiasRange()
   }
 
-  def applyPixelBiasRange(): Unit = dc.setPixelBiasRange(4096 * pixelBiasRange.value / 1500)
+  def applyPixelBiasRange(): Unit = dc.setPixelBiasRange(pixelBiasX.value)
 
   def resetGlobalReferenceBias(): Unit = {
     globalReferenceBias.set(2563)
@@ -40,7 +40,25 @@ object CalibrationController {
   def dc: DeviceController = FpgaController.deviceController
 
   val globalReferenceBias = IntegerProperty(2563)
-  val pixelBiasRange = IntegerProperty(55)
+  val pixelBiasX = IntegerProperty(800)
+
+  pixelBiasX.onChange(updatePixelBiasRange())
+
+  def updatePixelBiasRange(): Unit = {
+    val range = 0.507 * pixelBiasX.value - 302.8
+    val low = 0.121 * pixelBiasX.value + 675.9
+    val high = low + range
+    pixelBiasRange.set("Vpixrange: " + range.toInt.toString + " mV")
+    pixelBiasLow.set("Vpixlow: " + low.toInt.toString + " mV")
+    pixelBiasHigh.set("Vpixhigh: " + high.toInt.toString + " mV")
+  }
+
+  val pixelBiasLow = StringProperty("")
+  val pixelBiasHigh = StringProperty("")
+  val pixelBiasRange = StringProperty("")
+
+  updatePixelBiasRange()
+  
   val integrationTime = IntegerProperty(64)
   val adcDelay = IntegerProperty(2)
 

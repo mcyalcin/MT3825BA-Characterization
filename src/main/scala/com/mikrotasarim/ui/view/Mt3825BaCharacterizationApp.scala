@@ -219,7 +219,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         correctionControls,
         new Separator,
         globalReferenceBiasSlider,
-//        pixelBiasSlider,
+        pixelBiasSlider,
         integrationTimeSlider,
         adcDelaySlider
       )
@@ -242,10 +242,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           blockIncrement = increment
           majorTickUnit = increment
         },
-        new Label {
-          text <== model.asString + " " + unitLabel
-          prefWidth = 100
-        },
         new Button("Apply") {
           onAction = handle {
             apply()
@@ -255,6 +251,10 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           onAction = handle {
             reset()
           }
+        },
+        new Label {
+          text <== model.asString + " " + unitLabel
+          prefWidth = 100
         }
       )
     }
@@ -262,7 +262,49 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def globalReferenceBiasSlider = labeledSnappingSliderGroup("Global Reference Bias", CalibrationController.globalReferenceBias, 0, 3000, 1, "mV", CalibrationController.applyGlobalReferenceBias, CalibrationController.resetGlobalReferenceBias)
 
-  def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
+  def pixelBiasSlider = new HBox {
+    disable <== a0Selected
+    spacing = 10
+    content = List(
+      new Label("Pixel Bias Range") {
+        prefWidth = 175
+      },
+      new Slider {
+        prefWidth = 200
+        min = 800
+        max = 2048
+        value <==> pixelBiasX
+        snapToTicks = true
+        blockIncrement = 1
+        majorTickUnit = 1
+      },
+      new Button("Apply") {
+        onAction = handle {
+          applyPixelBiasRange()
+        }
+      },
+      new Button("Default") {
+        onAction = handle {
+          resetPixelBiasRange()
+        }
+      },
+      new Label {
+        text <== pixelBiasLow
+        prefWidth = 140
+      },
+      new Label {
+        text <== pixelBiasHigh
+        prefWidth = 140
+      },
+      new Label {
+        text <== pixelBiasRange
+        prefWidth = 140
+      }
+    )
+  }
+
+
+    //labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
 
   def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "\u00b5s", CalibrationController.applyIntegrationTime, CalibrationController.resetIntegrationTime)
 
@@ -336,10 +378,12 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   def modelSelector: Node = new ChoiceBox(modelLabels) {
+    disable <== deviceConnected
     value <==> selectedModel
   }
 
   def bitfileSelector: Node = new ChoiceBox(bitfileLabels) {
+    disable <== deviceConnected
     value <==> selectedBitfile
   }
 

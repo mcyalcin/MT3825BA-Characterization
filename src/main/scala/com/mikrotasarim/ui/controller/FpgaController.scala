@@ -52,6 +52,7 @@ object FpgaController {
 
   val selectedModel = StringProperty("A0")
 
+  selectedModel.onChange(a0Selected.set(selectedModel.value == "A0"))
 
   val a0Selected = BooleanProperty(value = true)
   val selectedBitfile = StringProperty("Package")
