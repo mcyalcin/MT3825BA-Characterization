@@ -9,6 +9,17 @@ import ij.{IJ, ImagePlus}
 import scalafx.scene.chart.XYChart
 
 object Frame {
+  def createFromContinuousData(xSize: Int, ySize: Int, min: Double, max: Double, data: Seq[Double], depth: Int): Frame = {
+    val mappedData: Seq[Int] = data.map(x =>
+      (if (x <= min) 0
+      else if (x >= max) depth - 1
+      else {
+        (depth - 1)  * (x-min) / (max - min)
+      }).toInt
+    )
+    new Frame(xSize, ySize, mappedData, depth)
+  }
+
   def createFromRaw(xSize: Int, ySize: Int, rawData: Seq[Byte], depth: Int): Frame = {
     def unsigned(b: Byte): Int = {
       (b.toInt + 256) % 256
@@ -19,7 +30,7 @@ object Frame {
 
   def createFrom14Bit(xSize: Int, ySize: Int, data: Seq[Int]): Frame = {
     val depth = 16384
-    new Frame(xSize, ySize, data.map(_ * 4), depth * 4)
+    new Frame(xSize, ySize, data, depth)
   }
 
   def save(image: BufferedImage, file: File): Unit = {
@@ -49,7 +60,7 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
 
   def histogram(): IndexedSeq[Int] = {
     val hist = Array.ofDim[Int](depth)
-    for (i <- 0 until data.length) {
+    for (i <- data.indices) {
       hist(data(i)) += 1
     }
     hist
@@ -69,13 +80,13 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
     series
   }
 
-  def getThermo: BufferedImage = {
+  def getHeatmap: BufferedImage = {
     // TODO: Rewrite this clearly.
     // TODO: Add other pseudo-coloring methods.
     val image = new BufferedImage(xSize, ySize, BufferedImage.TYPE_INT_RGB)
     val rgb = Array.ofDim[Int](data.length)
     val cut = depth / 4
-    for (i <- 0 until data.length) {
+    for (i <- data.indices) {
       val pixel = data(i)
       if (pixel < 0) {
         println("wtf")
@@ -119,7 +130,7 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
 
   def getGrayscale: BufferedImage = {
     val image = new BufferedImage(xSize, ySize, BufferedImage.TYPE_USHORT_GRAY)
-    val shortData = data.map(_.toShort).toArray
+    val shortData = data.map(n => (n*4).toShort).toArray
     image.getRaster.setDataElements(0, 0, xSize, ySize, shortData)
     image
   }

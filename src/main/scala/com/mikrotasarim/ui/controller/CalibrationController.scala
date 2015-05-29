@@ -57,11 +57,12 @@ object CalibrationController {
     "Partition 10",
     "Partition 11",
     "Partition 12"
-  )
-  )
+  ))
+
   val selectedPartition = StringProperty("Partition 1")
 
   selectedPartition.onChange({
+    // TODO: update currentNuc here.
     currentNucLabel.value = nucFrames(partitionToIndex(selectedPartition.value)).getOrElse(new NucFrame("", null, null)).name
     dc.disableImagingMode()
     FpgaController.deviceController.setActiveFlashPartition(partitionToIndex(selectedPartition.value))
@@ -89,7 +90,10 @@ object CalibrationController {
   val currentNucLabel = StringProperty("")
 
   def xSize = FpgaController.xSize.value.toInt
+
   def ySize = FpgaController.ySize.value.toInt
+
+  val nucCalibrationTargetValue = StringProperty("8192")
 
   def calculateAndApplyNuc(): Unit = {
     val dc = FpgaController.deviceController
@@ -107,7 +111,7 @@ object CalibrationController {
       val bas = Frame.createFrom14Bit(xSize, ySize, frameSet.head.toArray)
       bas.save("nucFrame_" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
-        math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
+      math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - nucCalibrationTargetValue.value.toInt)
     }
     val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
@@ -132,10 +136,13 @@ object CalibrationController {
     dc.disableImagingMode()
     dc.eraseActiveFlashPartition()
     dc.writeFrameToFlashMemory(frame)
+    currentNuc = frame
     dc.setNucMode(NucMode.Enabled)
     dc.enableImagingMode()
     nucFrames(partitionToIndex(selectedPartition.value)) = Some(new NucFrame(nucLabel.value, frame, deadPixels))
     currentNucLabel.value = nucLabel.value
     nucLabel.value = ""
   }
+
+  var currentNuc = Array.ofDim[Byte](288, 384)
 }

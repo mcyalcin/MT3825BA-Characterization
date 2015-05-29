@@ -19,12 +19,12 @@ class FrameSpec extends FlatSpec with Matchers {
   val diagonalFrame = Frame.createFrom14Bit(384, 288, diagonalData)
 
   val randomData = Array.ofDim[Int](384*288)
-  for (i <- 0 until randomData.length) randomData(i) = Random.nextInt(16384)
+  for (i <- randomData.indices) randomData(i) = Random.nextInt(16383)
   val randomFrame = Frame.createFrom14Bit(384, 288, randomData)
 
   "A frame" should "do equalization as defined" in {
     val frameData = Array.ofDim[Int](384*288)
-    for (i <- 0 until frameData.length) frameData(i)=i
+    for (i <- frameData.indices) frameData(i)=i
     val frame = new Frame(384, 288, frameData, 16384)
     val equalized = frame.topBotCut(16384)
 //    for (i <- 0 until equalized.data.length) println(equalized.data(i))
@@ -44,15 +44,15 @@ class FrameSpec extends FlatSpec with Matchers {
   }
 
   it should "be saved as thermographic image" in {
-    Frame.save(blackFrame.getThermo, "ac.tif")
+    Frame.save(blackFrame.getHeatmap, "ac.tif")
     Frame.show16Bit("./ac.tif")
-    Frame.save(grayFrame.getThermo, "bc.tif")
+    Frame.save(grayFrame.getHeatmap, "bc.tif")
     Frame.show16Bit("./bc.tif")
-    Frame.save(whiteFrame.getThermo, "cc.tif")
+    Frame.save(whiteFrame.getHeatmap, "cc.tif")
     Frame.show16Bit("./cc.tif")
-    Frame.save(diagonalFrame.getThermo, "dc.tif")
+    Frame.save(diagonalFrame.getHeatmap, "dc.tif")
     Frame.show16Bit("./dc.tif")
-    Frame.save(randomFrame.getThermo, "ec.tif")
+    Frame.save(randomFrame.getHeatmap, "ec.tif")
     Frame.show16Bit("./ec.tif")
   }
   
