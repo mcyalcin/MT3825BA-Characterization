@@ -165,7 +165,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
             prefWidth = 80
           },
           new TextField {
-            text <==> MeasurementController.histogramMin
+            text <==> MeasurementController.measurementDisplayMin
           }
         )
       },
@@ -176,7 +176,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
             prefWidth = 80
           },
           new TextField {
-            text <==> MeasurementController.histogramMax
+            text <==> MeasurementController.measurementDisplayMax
           }
         )
       },
@@ -190,6 +190,9 @@ object Mt3825BaCharacterizationApp extends JFXApp {
             text <==> MeasurementController.histogramBinCount
           }
         )
+      },
+      new Button("Apply") {
+        onAction = handle { MeasurementController.handleDisplayRangeChange() }
       }
     )
   }

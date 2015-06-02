@@ -11,7 +11,8 @@ import scalafx.collections.ObservableBuffer
 
 import javafx.scene.image.Image
 
-import javafx.scene.chart.XYChart
+import scalafx.scene.chart.XYChart
+import scalafx.Includes._
 
 object MeasurementController {
 
@@ -182,7 +183,6 @@ object MeasurementController {
     CalibrationController.calculateAndApplyNuc()
     val frame0 = combineBytes(dc.getFullFrame)
     val nuc = CalibrationController.currentNuc
-    // TODO: check this for sign issues. shouldn't be a problem up to 63 where we work.
     val shiftedNuc = nuc.map(a => a.map(n=> (if (n > 31) n-24 else n+24).toByte))
     dc.disableImagingMode()
     dc.setActiveFlashPartition(1)
@@ -391,149 +391,122 @@ object MeasurementController {
   val selectedMeasurement = StringProperty("NETD T0")
 
   selectedMeasurement.onChange((_,_,_) => {
-    // TODO: Work out how to convert these values to frames
     if (selectedMeasurement.value == "NETD T0") {
-      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
-      histogram.clear()
-      histogram += diagonalFrame.histogramData(0,16383, 128)
+      //      val data = measurement.netd0
+      val data = diagonalData.map(_.toDouble / 10)
+      measurementDisplayMin set data.min.toString
+      measurementDisplayMax set data.max.toString
+      updateMeasurementDisplayWithContinuousData(data)
     } else if (selectedMeasurement.value == "NETD T1") {
-      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
-      histogram.clear()
-      histogram += diagonalFrame.histogramData(0,16383, 128)
+      val data = diagonalData.map(_.toDouble / 10)
+//      val data = measurement.netd1
+      measurementDisplayMin set data.min.toString
+      measurementDisplayMax set data.max.toString
+      updateMeasurementDisplayWithContinuousData(data)
     } else if (selectedMeasurement.value == "Resistor Map - Detectors") {
-      heatmap.set(SwingFXUtils.toFXImage(croppedFrame.getHeatmap, null))
-      histogram.clear()
-      histogram += croppedFrame.histogramData(0,16383, 128)
+      val data = measurement.resistorMap
+      measurementDisplayMin set data.min.toString
+      measurementDisplayMax set data.max.toString
+      updateMeasurementDisplayWithContinuousData(data)
     } else if (selectedMeasurement.value == "Resistor Map - References") {
-      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
-      histogram.clear()
-      histogram += randomFrame.histogramData(0,16383, 128)
+      val data = measurement.referenceResistorMap
+      measurementDisplayMin set data.min.toString
+      measurementDisplayMax set data.max.toString
+      updateMeasurementDisplayWithContinuousData(data)
     } else if (selectedMeasurement.value == "Responsivity") {
-      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
-      histogram.clear()
-      histogram += randomFrame.histogramData(0,16383, 128)
+      val data = measurement.responsivity
+      measurementDisplayMin set data.min.toString
+      measurementDisplayMax set data.max.toString
+      updateMeasurementDisplayWithContinuousData(data)
     } else if (selectedMeasurement.value == "Noise") {
-      val noiseArray = measurement.noise
-      measurementDisplayMin set noiseArray.min.toString
-      measurementDisplayMax set noiseArray.max.toString
-      updateMeasurementDisplayWithNoise(noiseArray.toSeq)
+      val data = measurement.noise
+      measurementDisplayMin set data.min.toString
+      measurementDisplayMax set data.max.toString
+      updateMeasurementDisplayWithContinuousData(data.toSeq)
     } else { // Pixel values
       val frame = ImageController.currentFrame
+      measurementDisplayMin set frame.data.min.toString
+      measurementDisplayMax set frame.data.max.toString
       heatmap.set(SwingFXUtils.toFXImage(frame.getHeatmap, null))
       updateMeasurementDisplayWithPixelValues()
     }
   })
 
-  def updateMeasurementDisplayWithPixelValues(): Unit = {
-    val frame = ImageController.currentFrame
-    val croppedData = frame.data.filter(n => n > histogramMin.value.toInt && n < histogramMax.value.toInt)
-    val histogramFrame = new Frame(croppedData.length, 1, croppedData, frame.depth)
-    histogram.clear()
-    histogram += histogramFrame.histogramData(histogramMin.value.toInt, histogramMax.value.toInt,128)
-    displayPeak.set(histogramFrame.histogram().indexOf(histogramFrame.histogram().max).toString)
-    displayMean.set((histogramFrame.data.map(_.toDouble).sum / histogramFrame.data.length).toString)
+  def handleDisplayRangeChange(): Unit = {
+    if (selectedMeasurement.value == "NETD T0") {
+      val data = measurement.netd0
+      updateMeasurementDisplayWithContinuousData(data)
+    } else if (selectedMeasurement.value == "NETD T1") {
+      val data = measurement.netd1
+      updateMeasurementDisplayWithContinuousData(data)
+    } else if (selectedMeasurement.value == "Resistor Map - Detectors") {
+      val data = measurement.resistorMap
+      updateMeasurementDisplayWithContinuousData(data)
+    } else if (selectedMeasurement.value == "Resistor Map - References") {
+      val data = measurement.referenceResistorMap
+      updateMeasurementDisplayWithContinuousData(data)
+    } else if (selectedMeasurement.value == "Responsivity") {
+      val data = measurement.responsivity
+      updateMeasurementDisplayWithContinuousData(data)
+    } else if (selectedMeasurement.value == "Noise") {
+      val data = measurement.noise
+      updateMeasurementDisplayWithContinuousData(data.toSeq)
+    } else {
+      updateMeasurementDisplayWithPixelValues()
+    }
   }
 
-  def updateMeasurementDisplayWithNoise(noiseArray: Seq[Double]): Unit = {
+  def updateMeasurementDisplayWithPixelValues(): Unit = {
+    val frame = ImageController.currentFrame
+    val min = measurementDisplayMin.value.toInt
+    val max = measurementDisplayMax.value.toInt
+    val cutFrame = frame.minMaxCut(min, max)
+
+    heatmap.set(SwingFXUtils.toFXImage(cutFrame.getHeatmap, null))
+
+    val croppedData = frame.data.filter(n => n > measurementDisplayMin.value.toInt && n < measurementDisplayMax.value.toInt)
+    val histogramFrame = new Frame(croppedData.length, 1, croppedData, frame.depth)
+    histogram.clear()
+    histogram += histogramFrame.histogramData(measurementDisplayMin.value.toInt, measurementDisplayMax.value.toInt, histogramBinCount.value.toInt)
+//    displayPeak.set(histogramFrame.histogram().indexOf(histogramFrame.histogram().max).toString)
+//    displayMean.set((histogramFrame.data.map(_.toDouble).sum / histogramFrame.data.length).toString)
+  }
+
+  def histogramData(min: Double, max: Double, steps: Int, data: Seq[Double]): XYChart.Series[String, Number] = {
+    val stepSize = (max - min) / steps
+    val hist = Array.ofDim[Int](steps)
+    for (d <- data) {
+      if (d >= min && d < max) {
+        hist(((d-min)/stepSize).toInt) += 1
+      }
+    }
+    val labels = min until max by stepSize
+    val series = new XYChart.Series[String, Number] {
+      name = "Histogram"
+      data = labels zip hist map {
+        case (x,y) => XYChart.Data[String, Number](x.toString, y)
+      }
+    }
+    series
+  }
+
+  def updateMeasurementDisplayWithContinuousData(data: Seq[Double]): Unit = {
+    val min = measurementDisplayMin.value.toDouble
+    val max = measurementDisplayMax.value.toDouble
+    val bins = histogramBinCount.value.toInt
     val noiseFrame = Frame.createFromContinuousData(
       FpgaController.xSize.value.toInt,
       FpgaController.ySize.value.toInt,
-      measurementDisplayMin.value.toDouble,
-      measurementDisplayMax.value.toDouble,
-      noiseArray,
+      min,
+      max,
+      data,
       16383
     )
     heatmap.set(SwingFXUtils.toFXImage(noiseFrame.getHeatmap, null))
-    histogram.clear()
-    histogram += noiseFrame.histogramData(0,16383, 128)
-    displayPeak.set(noiseFrame.histogram().indexOf(noiseFrame.histogram().max).toString)
-    displayMean.set((noiseArray.sum / (FpgaController.xSize.value.toInt * FpgaController.ySize.value.toInt)).toString)
-  }
 
-//  measurementDisplayMin.onChange((_,_,_) => {
-//    // TODO: Work out how to convert these values to frames
-//    if (selectedMeasurement.value == "NETD T0") {
-//      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += diagonalFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "NETD T1") {
-//      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += diagonalFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Resistor Map - Detectors") {
-//      heatmap.set(SwingFXUtils.toFXImage(croppedFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += croppedFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Resistor Map - References") {
-//      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += randomFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Responsivity") {
-//      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += randomFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Noise") {
-//      val noiseArray = measurement.noise
-//      measurementDisplayMin set noiseArray.min.toString
-//      measurementDisplayMax set noiseArray.max.toString
-//      updateMeasurementDisplayWithNoise(noiseArray.toSeq)
-//    } else { // Pixel values
-//    val image = ImageController.getImage
-//      val frame = new Frame(
-//        FpgaController.xSize.value.toInt,
-//        FpgaController.ySize.value.toInt,
-//        image,
-//        16383
-//      )
-//      heatmap.set(SwingFXUtils.toFXImage(frame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += frame.histogramData(0,16383,128)
-//      displayPeak.set(frame.histogram().indexOf(frame.histogram().max).toString)
-//      displayMean.set((image.map(_.toDouble).sum / (FpgaController.xSize.value.toInt * FpgaController.ySize.value.toInt)).toString)
-//    }
-//  })
-//  measurementDisplayMax.onChange((_,_,_) => {
-//    // TODO: Work out how to convert these values to frames
-//    if (selectedMeasurement.value == "NETD T0") {
-//      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += diagonalFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "NETD T1") {
-//      heatmap.set(SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += diagonalFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Resistor Map - Detectors") {
-//      heatmap.set(SwingFXUtils.toFXImage(croppedFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += croppedFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Resistor Map - References") {
-//      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += randomFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Responsivity") {
-//      heatmap.set(SwingFXUtils.toFXImage(randomFrame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += randomFrame.histogramData(0,16383, 128)
-//    } else if (selectedMeasurement.value == "Noise") {
-//      val noiseArray = measurement.noise
-//      measurementDisplayMin set noiseArray.min.toString
-//      measurementDisplayMax set noiseArray.max.toString
-//      updateMeasurementDisplayWithNoise(noiseArray.toSeq)
-//    } else { // Pixel values
-//    val image = ImageController.getImage
-//      val frame = new Frame(
-//        FpgaController.xSize.value.toInt,
-//        FpgaController.ySize.value.toInt,
-//        image,
-//        16383
-//      )
-//      heatmap.set(SwingFXUtils.toFXImage(frame.getHeatmap, null))
-//      histogram.clear()
-//      histogram += frame.histogramData(0,16383,128)
-//      displayPeak.set(frame.histogram().indexOf(frame.histogram().max).toString)
-//      displayMean.set((image.map(_.toDouble).sum / (FpgaController.xSize.value.toInt * FpgaController.ySize.value.toInt)).toString)
-//    }
-//  })
+    histogram.clear()
+    histogram += histogramData(min, max, bins, data)
+  }
 
   val diagonalData = Array.ofDim[Int](384*288)
   for (i <- 0 until 384) for (j <- 0 until 288) diagonalData(j * 384 + i) = 8192 * i / 383 + 8192 * j / 287
@@ -548,7 +521,7 @@ object MeasurementController {
   val croppedFrame = Frame.createFrom14Bit(384, 24, croppedData)
 
   val heatmap = ObjectProperty[Image](SwingFXUtils.toFXImage(diagonalFrame.getHeatmap, null))
-  val histogram = ObservableBuffer[XYChart.Series[String, Number]](diagonalFrame.histogramData(0, 16383, 128))
+  val histogram = ObservableBuffer[javafx.scene.chart.XYChart.Series[String, Number]](diagonalFrame.histogramData(0, 16383, 128))
 
   val displayMean = StringProperty("n/a")
   val displayPeak = StringProperty("n/a")
@@ -556,7 +529,5 @@ object MeasurementController {
   val measurementDisplayMax = StringProperty("")
   val measurementDisplayMin = StringProperty("")
 
-  val histogramMin = StringProperty("")
-  val histogramMax = StringProperty("")
-  val histogramBinCount = StringProperty("")
+  val histogramBinCount = StringProperty("128")
 }

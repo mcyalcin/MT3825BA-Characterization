@@ -155,6 +155,15 @@ class Frame(val xSize: Int, val ySize: Int, val data: Seq[Int], val depth: Int) 
     new Frame(xSize, ySize, equalizedData, targetDepth)
   }
 
+  def minMaxCut(min: Int, max: Int): Frame = {
+    val cutData = data.map(i =>
+      if (i >= max) depth - 1
+      else if (i <= min) 0
+      else (i - min) * depth / (max - min)
+    )
+    new Frame(xSize, ySize, cutData, depth)
+  }
+
   def withDepth(targetDepth: Int): Frame = {
     val mappedData = data.map(i => i * (targetDepth - 1) / (depth - 1))
     new Frame(xSize, ySize, mappedData, targetDepth)
