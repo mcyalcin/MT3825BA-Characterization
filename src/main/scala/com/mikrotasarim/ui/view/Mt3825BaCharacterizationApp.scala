@@ -110,23 +110,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     spacing = 10
     content = Seq(
       measurementDisplaySelector,
-      new HBox {
-        spacing = 10
-        content = Seq(
-          measurementMinCutoff,
-          measurementMaxCutoff
-        )
-      },
       heatmapImage
     )
-  }
-
-  def measurementMinCutoff: Node = new TextField {
-    text <==> MeasurementController.measurementDisplayMin
-  }
-
-  def measurementMaxCutoff: Node = new TextField {
-    text <==> MeasurementController.measurementDisplayMax
   }
 
   def histogramBox: Node = new VBox {
