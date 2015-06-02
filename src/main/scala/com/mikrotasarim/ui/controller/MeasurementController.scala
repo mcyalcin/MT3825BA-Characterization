@@ -392,14 +392,12 @@ object MeasurementController {
 
   selectedMeasurement.onChange((_,_,_) => {
     if (selectedMeasurement.value == "NETD T0") {
-      //      val data = measurement.netd0
-      val data = diagonalData.map(_.toDouble / 10)
+      val data = measurement.netd0
       measurementDisplayMin set data.min.toString
       measurementDisplayMax set data.max.toString
       updateMeasurementDisplayWithContinuousData(data)
     } else if (selectedMeasurement.value == "NETD T1") {
-      val data = diagonalData.map(_.toDouble / 10)
-//      val data = measurement.netd1
+      val data = measurement.netd1
       measurementDisplayMin set data.min.toString
       measurementDisplayMax set data.max.toString
       updateMeasurementDisplayWithContinuousData(data)
