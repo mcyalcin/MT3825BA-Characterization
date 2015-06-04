@@ -205,6 +205,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         nucControls,
         new Separator,
         correctionControls,
+        histEq,
         new Separator,
         globalReferenceBiasSlider,
         pixelBiasSlider,
@@ -212,6 +213,10 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         adcDelaySlider
       )
     }
+  }
+
+  def histEq: Node = new CheckBox("Histogram Equalization") {
+    selected <==> histEqSelected
   }
 
   def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String, apply: () => Unit, reset: () => Unit): Node = {

@@ -4,13 +4,16 @@ import javafx.embed.swing.SwingFXUtils
 
 import com.mikrotasarim.ui.model.Frame
 
-import scalafx.beans.property.{ObjectProperty, StringProperty}
+import scalafx.beans.property.{BooleanProperty, ObjectProperty, StringProperty}
 import javafx.scene.image.Image
 
 object ImageController {
 
   val filePrefix = new StringProperty("d:\\")
   val sampleCount = new StringProperty("")
+  val histEqSelected = new BooleanProperty() {
+    value = false
+  }
 
   def xSize = FpgaController.xSize.value.toInt
 
@@ -30,7 +33,12 @@ object ImageController {
   var currentFrame: Frame = Frame.createFrom14Bit(384, 288, diagonalData)
 
   def refreshImage(): Unit = {
-    currentFrame = Frame.createFrom14Bit(xSize, ySize, getImage)
+    val newFrame = Frame.createFrom14Bit(xSize, ySize, getImage)
+    currentFrame = if (histEqSelected.value) {
+      newFrame.topBotCut()
+    } else {
+      newFrame
+    }
     currentImage.set(SwingFXUtils.toFXImage(currentFrame.getGrayscale, null))
   }
 
