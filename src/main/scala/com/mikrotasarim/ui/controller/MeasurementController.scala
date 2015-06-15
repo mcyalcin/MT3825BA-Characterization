@@ -12,7 +12,6 @@ import scalafx.collections.ObservableBuffer
 import javafx.scene.image.Image
 
 import scalafx.scene.chart.XYChart
-import scalafx.Includes._
 
 object MeasurementController {
 
@@ -84,7 +83,7 @@ object MeasurementController {
 
   def captureImageSequence(numFrames: Int): IndexedSeq[IndexedSeq[Int]] = {
     for (i <- 0 until numFrames) yield {
-      val rawFrame = FpgaController.deviceController.getFrame
+      val rawFrame = fp.getClippedFrameData
       val frame = for (i <- 0 until 384 * 288) yield {
         rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
       }
@@ -161,58 +160,17 @@ object MeasurementController {
   }
 
   def createA1ResistorMaps(): Unit = {
-    dc.disableImagingMode()
-    dc.setReset()
-    dc.clearReset()
-    dc.initializeRoic()
-    dc.setNucMode(NucMode.Fixed,255)
-    dc.sendReferenceDataToRoic()
-    dc.setTriggerMode(TriggerMode.Slave_Software)
-    dc.setNucMode(NucMode.Enabled)
-    if (FpgaController.isCmosTest.value) {
-      dc.writeToRoicMemory(17,3)
-    }
-    val ones = Array.fill[Byte](384*2)(255.toByte)
-    dc.updateReferenceData(ones)
-    dc.setIntegrationTime(30)
-    dc.setPixelGain(31)
-    dc.setGlobalReferenceBias(1365)
-    dc.setPixelBiasRange(1248)
-    dc.setActiveFlashPartition(0)
-    dc.enableImagingMode()
-    CalibrationController.calculateAndApplyNuc()
-    val frame0 = combineBytes(dc.getFullFrame)
-    val nuc = CalibrationController.currentNuc
-    val shiftedNuc = nuc.map(a => a.map(n=> (if (n > 31) n-24 else n+24).toByte))
-    dc.disableImagingMode()
-    dc.setActiveFlashPartition(1)
-    dc.eraseActiveFlashPartition()
-    dc.writeFrameToFlashMemory(shiftedNuc)
-    dc.setNucMode(NucMode.Enabled)
-    dc.enableImagingMode()
-    val frame1 = combineBytes(dc.getFullFrame)
-    val k = 176170000.0
-    val r = for (i <- frame0.indices) yield k / (frame0(i) - frame1(i))
-    measurement.resistorMap = r.toArray
-    dc.disableImagingMode()
-    dc.setActiveFlashPartition(0)
-    dc.eraseActiveFlashPartition()
-    dc.writeFrameToFlashMemory(shiftedNuc)
-    dc.setNucMode(NucMode.Enabled)
-    dc.enableImagingMode()
-    val frameR0 = combineBytes(dc.getFullFrame)
-    dc.setGlobalReferenceBias(1501)
-    val frameR1 = combineBytes(dc.getFullFrame)
-    val rr = for (i <- frameR0.indices) yield k / (frameR0(i) - frameR1(i))
-    measurement.referenceResistorMap = rr.toArray
+    // TODO: Pending redefinition
   }
+
+  def fp = FpgaController.frameProvider
 
   def createA0ResistorMap(): Unit = {
 
     def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
       def isVmeas(vmid: Int): Int = {
         dc.setPixelMidpoint(vmid)
-        val rawFrame = dc.getFullFrame.drop(392 * 2)
+        val rawFrame = fp.getFrameData.drop(392 * 2)
         val frame = combineBytes(rawFrame)
         val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
         val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
@@ -268,17 +226,17 @@ object MeasurementController {
     vDet.set(vmeas.toString)
 
     dc.setPixelMidpoint(vmeas - 8)
-    val f1 = combineBytes(dc.getFrame)
+    val f1 = combineBytes(fp.getClippedFrameData)
     dc.setPixelMidpoint(vmeas + 8)
-    val f2 = combineBytes(dc.getFrame)
+    val f2 = combineBytes(fp.getClippedFrameData)
 
     val s1 = for (i <- f1.indices) yield f2(i) - f1(i)
 
     dc.setIntegrationTime(0)
     dc.setPixelMidpoint(vmeas - 8)
-    val f3 = combineBytes(dc.getFrame)
+    val f3 = combineBytes(fp.getClippedFrameData)
     dc.setPixelMidpoint(vmeas + 8)
-    val f4 = combineBytes(dc.getFrame)
+    val f4 = combineBytes(fp.getClippedFrameData)
 
     val s2 = for (i <- f3.indices) yield f4(i) - f3(i)
 
@@ -297,7 +255,7 @@ object MeasurementController {
     def findVmeas(cur: Int, min: Int, max: Int, isDetector: Boolean): Int = {
       def isVmeas(vmid: Int): Int = {
         dc.setPixelMidpoint(vmid)
-        val rawFrame = dc.getFullFrame.drop(392 * 2)
+        val rawFrame = fp.getFrameData.drop(392 * 2)
         val frame = combineBytes(rawFrame)
         val vavgFrame = frame.zipWithIndex.filter(_._2 % 392 < 384).map(_._1)
         val vavg = vavgFrame.map(_.toDouble).sum / vavgFrame.length
@@ -353,17 +311,17 @@ object MeasurementController {
     vRef.set(vmeas.toString)
 
     dc.setPixelMidpoint(vmeas - 8)
-    val f1 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f1 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
     dc.setPixelMidpoint(vmeas + 8)
-    val f2 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f2 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
 
     val s1 = for (i <- f1.indices) yield f2(i) - f1(i)
 
     dc.setIntegrationTime(0)
     dc.setPixelMidpoint(vmeas - 8)
-    val f3 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f3 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
     dc.setPixelMidpoint(vmeas + 8)
-    val f4 = combineBytes(dc.getFrame).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f4 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
 
     val s2 = for (i <- f3.indices) yield f4(i) - f3(i)
 
@@ -372,7 +330,7 @@ object MeasurementController {
     import spire.implicits._
     val tint: Double = (10.0 pow -6) * 10
     val cint: Double = (10.0 pow -12) * 31
-    val k: Double = 166.0 // Old Value : 196
+    val k: Double = 166.0
     val r = for (i <- f1.indices) yield (tint / cint) * ((s2(i).toDouble / (s1(i).toDouble - s2(i).toDouble + 0.000000001)) - (k / (deltaV(i).toDouble + 0.000000001)))
 
     measurement.referenceResistorMap = r.toArray

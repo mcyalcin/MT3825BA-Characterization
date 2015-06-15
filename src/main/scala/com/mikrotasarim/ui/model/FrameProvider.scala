@@ -17,10 +17,17 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
     dc.getFrameData(xS * yS * 2)
   }
 
+  def getClippedFrameData: Array[Byte] = {
+    val frameData = getFrameData
+    val clippedFrameData = frameData.drop(deadLines * xSize * 2).zipWithIndex.filter(_._2 % (xS * 2) < (xSize * 2)).map(_._1)
+    clippedFrameData
+  }
+
   def getFrame: Frame = {
     val frameData = getFrameData
     val clippedFrameData = frameData.drop(deadLines * xSize * 2).zipWithIndex.filter(_._2 % (xS * 2) < (xSize * 2)).map(_._1)
     val frame = Frame.createFromRaw(xSize, ySize, clippedFrameData, depth)
+    // TODO:
     frame
   }
 

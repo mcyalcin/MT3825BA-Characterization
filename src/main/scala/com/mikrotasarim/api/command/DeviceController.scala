@@ -342,11 +342,11 @@ class DeviceController(device: DeviceInterface) {
       commandWire -> sFsynOpCode
     ))
     val rawFrame = Array.ofDim[Byte](frameSize)
-    println("Waiting for frame @ " + System.nanoTime())
+    println("Waiting for frame  @ " + System.nanoTime())
     do {
       device.updateWireOuts()
     } while (device.getWireOutValue(readyWire) != 0)
-    println("Reading frame @ " + System.nanoTime())
+    println("Reading frame      @ " + System.nanoTime())
     device.readFromPipeOut(imageOutPipe, frameSize, rawFrame)
     println("Done reading frame @ " + System.nanoTime())
     rawFrame

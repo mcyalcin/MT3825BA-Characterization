@@ -111,6 +111,8 @@ object CalibrationController {
 
   def ySize = FpgaController.ySize.value.toInt
 
+  def fp = FpgaController.frameProvider
+
   val nucCalibrationTargetValue = StringProperty("8192")
 
   def calculateAndApplyNuc(): Unit = {
@@ -121,7 +123,7 @@ object CalibrationController {
       dc.enableImagingMode()
       val numFrames = 2
       val frameSet = for (i <- 0 until numFrames) yield {
-        val rawFrame = dc.getFrame
+        val rawFrame = fp.getClippedFrameData
         for (i <- 0 until 384 * 288) yield {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
