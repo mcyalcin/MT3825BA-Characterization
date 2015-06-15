@@ -337,6 +337,21 @@ class DeviceController(device: DeviceInterface) {
     ))
   }
 
+  def getFrameData(frameSize: Int): Array[Byte] = {
+    setWiresAndTrigger(Map(
+      commandWire -> sFsynOpCode
+    ))
+    val rawFrame = Array.ofDim[Byte](frameSize)
+    println("Waiting for frame @ " + System.nanoTime())
+    do {
+      device.updateWireOuts()
+    } while (device.getWireOutValue(readyWire) != 0)
+    println("Reading frame @ " + System.nanoTime())
+    device.readFromPipeOut(imageOutPipe, frameSize, rawFrame)
+    println("Done reading frame @ " + System.nanoTime())
+    rawFrame
+  }
+
   def getFrame: Array[Byte] = {
     val fullFrame = getFullFrame
 
