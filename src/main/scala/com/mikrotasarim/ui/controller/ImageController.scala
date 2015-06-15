@@ -2,7 +2,7 @@ package com.mikrotasarim.ui.controller
 
 import javafx.embed.swing.SwingFXUtils
 
-import com.mikrotasarim.ui.model.Frame
+import com.mikrotasarim.ui.model.{FrameProvider, Frame}
 
 import scalafx.beans.property.{BooleanProperty, ObjectProperty, StringProperty}
 import javafx.scene.image.Image
@@ -21,7 +21,7 @@ object ImageController {
 
   def saveImages(): Unit = {
     for (i <- 0 until sampleCount.value.toInt) {
-      val frame = Frame.createFrom14Bit(xSize, ySize, getImage)
+      val frame = FpgaController.frameProvider.getFrame
       frame.save(filePrefix.value + "_" + i + ".tif")
     }
   }
@@ -32,8 +32,10 @@ object ImageController {
 
   var currentFrame: Frame = Frame.createFrom14Bit(384, 288, diagonalData)
 
+  def fp: FrameProvider = FpgaController.frameProvider
+
   def refreshImage(): Unit = {
-    val newFrame = Frame.createFrom14Bit(xSize, ySize, getImage)
+    val newFrame = fp.getFrame
     currentFrame = if (histEqSelected.value) {
       newFrame.topBotCut()
     } else {
@@ -58,19 +60,11 @@ object ImageController {
     else frame
   }
 
-  def getImage: Array[Int] = {
-    correctImage(getRawImage)
-  }
-
   def combineBytes(raw: Array[Byte]): Array[Int] = {
     def unsigned(b: Byte): Int = {
       (b.toInt + 256) % 256
     }
     (for (i <- 0 until 384 * 288) yield unsigned(raw(2 * i)) + unsigned(raw(2 * i + 1)) * 256).toArray
-  }
-
-  def getRawImage: Array[Int] = {
-    combineBytes(FpgaController.deviceController.getFrame)
   }
 
   def dc = FpgaController.deviceController
