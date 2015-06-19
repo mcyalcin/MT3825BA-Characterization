@@ -3,6 +3,7 @@ package com.mikrotasarim.ui.controller
 import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode}
 import com.mikrotasarim.api.command.DeviceController
 import com.mikrotasarim.api.device.{ConsoleMockDeviceInterface, OpalKellyInterface}
+import com.mikrotasarim.ui.model.{A1FrameProvider, A0FrameProvider, FrameProvider}
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
@@ -12,6 +13,7 @@ object FpgaController {
   // TODO: Use of null is ugly. Replace with options, doing the necessary rework everywhere these are used.
   var deviceController: DeviceController = null
   var device: OpalKellyInterface = null
+  var frameProvider: FrameProvider = null
 
   val deviceConnected = BooleanProperty(value = false)
   val isSelfTest = BooleanProperty(value = false)
@@ -81,6 +83,11 @@ object FpgaController {
     deviceController.setGlobalReferenceBias(3500)
     deviceController.setSamplingDelay(4)
     deviceController.enableImagingMode()
+    frameProvider =
+      if (a0Selected.value)
+        new A0FrameProvider(deviceController, xSize.value.toInt, ySize.value.toInt)
+      else
+        new A1FrameProvider(deviceController, xSize.value.toInt, ySize.value.toInt)
     deviceConnected.set(true)
   }
 
