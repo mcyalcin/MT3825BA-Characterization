@@ -530,7 +530,8 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         new Separator,
         imageSaveControls,
         new Separator,
-        imageOpenButton
+        imageOpenButton,
+        streamControls
       )
     }
   }
@@ -595,9 +596,33 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   def imageOpenButton: Node = new Button("Open") {
+    disable <== streamOn
     onAction = handle {
       refreshImage()
     }
+  }
+
+  def streamControls: Node = new VBox{
+    spacing = 10
+    content = Seq(
+      new CheckBox("Stream") {
+        selected <==> streamOn
+      },
+      new Slider {
+        disable <== streamOn
+        prefWidth = 200
+        min = 1
+        max = 20
+        value <==> frameRate
+        snapToTicks = true
+        blockIncrement = 1
+        majorTickUnit = 1
+        showTickMarks = true
+        showTickLabels = true
+        majorTickUnit = 5
+        minorTickCount = 5
+      }
+    )
   }
 
   def imagePrefixSelector: Node = new TextField {

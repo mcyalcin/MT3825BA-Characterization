@@ -4,7 +4,7 @@ import javafx.embed.swing.SwingFXUtils
 
 import com.mikrotasarim.ui.model.{FrameProvider, Frame}
 
-import scalafx.beans.property.{BooleanProperty, ObjectProperty, StringProperty}
+import scalafx.beans.property.{IntegerProperty, BooleanProperty, ObjectProperty, StringProperty}
 import javafx.scene.image.Image
 
 object ImageController {
@@ -41,7 +41,9 @@ object ImageController {
     } else {
       newFrame
     }
-    currentImage.set(SwingFXUtils.toFXImage(currentFrame.getGrayscale, null))
+    val grayscale = currentFrame.getGrayscale
+    val convertedFrame = SwingFXUtils.toFXImage(grayscale, null)
+    currentImage.set(convertedFrame)
   }
 
   def correctImage(frame: Array[Int]): Array[Int] = {
@@ -70,4 +72,31 @@ object ImageController {
   def dc = FpgaController.deviceController
 
   val currentImage = ObjectProperty[Image](SwingFXUtils.toFXImage(diagonalFrame.getGrayscale, null))
+
+  val streamOn = BooleanProperty(value = false)
+
+  streamOn.onChange(
+    if (streamOn.value) startStream() else stopStream()
+  )
+
+  import javafx.animation.{Timeline, KeyFrame}
+  import javafx.util.Duration
+  import javafx.event.{EventHandler, ActionEvent}
+
+  var streamTimeline: Timeline = null
+  val frameRate = IntegerProperty(20)
+
+  def startStream(): Unit = {
+    streamTimeline = new Timeline(new KeyFrame(Duration.seconds(1.0 / frameRate.value), new EventHandler[ActionEvent]() {
+      override def handle(event: ActionEvent) {
+        ImageController.refreshImage()
+      }
+    }))
+    streamTimeline.setCycleCount(javafx.animation.Animation.INDEFINITE)
+    streamTimeline.play()
+  }
+
+  def stopStream(): Unit = {
+    streamTimeline.stop()
+  }
 }
