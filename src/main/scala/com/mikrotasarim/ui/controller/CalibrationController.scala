@@ -3,7 +3,7 @@ package com.mikrotasarim.ui.controller
 import com.mikrotasarim.api.NucFrame
 import com.mikrotasarim.api.command.ApiConstants.NucMode
 import com.mikrotasarim.api.command.DeviceController
-import com.mikrotasarim.image.Frame
+import com.mikrotasarim.ui.model.Frame
 
 import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
@@ -17,11 +17,11 @@ object CalibrationController {
   def applyIntegrationTime(): Unit = dc.setIntegrationTime(integrationTime.value * 3)
 
   def resetPixelBiasRange(): Unit = {
-    pixelBiasRange.set(55)
+    pixelBiasX.set(800)
     applyPixelBiasRange()
   }
 
-  def applyPixelBiasRange(): Unit = dc.setPixelBiasRange(4096 * pixelBiasRange.value / 1500)
+  def applyPixelBiasRange(): Unit = dc.setPixelBiasRange(pixelBiasX.value)
 
   def resetGlobalReferenceBias(): Unit = {
     globalReferenceBias.set(2563)
@@ -40,7 +40,25 @@ object CalibrationController {
   def dc: DeviceController = FpgaController.deviceController
 
   val globalReferenceBias = IntegerProperty(2563)
-  val pixelBiasRange = IntegerProperty(55)
+  val pixelBiasX = IntegerProperty(800)
+
+  pixelBiasX.onChange(updatePixelBiasRange())
+
+  def updatePixelBiasRange(): Unit = {
+    val range = 0.507 * pixelBiasX.value - 302.8
+    val low = 0.121 * pixelBiasX.value + 675.9
+    val high = low + range
+    pixelBiasRange.set("Vpixrange: " + range.toInt.toString + " mV")
+    pixelBiasLow.set("Vpixlow: " + low.toInt.toString + " mV")
+    pixelBiasHigh.set("Vpixhigh: " + high.toInt.toString + " mV")
+  }
+
+  val pixelBiasLow = StringProperty("")
+  val pixelBiasHigh = StringProperty("")
+  val pixelBiasRange = StringProperty("")
+
+  updatePixelBiasRange()
+  
   val integrationTime = IntegerProperty(64)
   val adcDelay = IntegerProperty(2)
 
@@ -57,11 +75,12 @@ object CalibrationController {
     "Partition 10",
     "Partition 11",
     "Partition 12"
-  )
-  )
+  ))
+
   val selectedPartition = StringProperty("Partition 1")
 
   selectedPartition.onChange({
+    // TODO: update currentNuc here.
     currentNucLabel.value = nucFrames(partitionToIndex(selectedPartition.value)).getOrElse(new NucFrame("", null, null)).name
     dc.disableImagingMode()
     FpgaController.deviceController.setActiveFlashPartition(partitionToIndex(selectedPartition.value))
@@ -88,6 +107,14 @@ object CalibrationController {
   val nucLabel = StringProperty("")
   val currentNucLabel = StringProperty("")
 
+  def xSize = FpgaController.xSize.value.toInt
+
+  def ySize = FpgaController.ySize.value.toInt
+
+  def fp = FpgaController.frameProvider
+
+  val nucCalibrationTargetValue = StringProperty("8192")
+
   def calculateAndApplyNuc(): Unit = {
     val dc = FpgaController.deviceController
     val nucCalibrationDistances = for (i <- 0 to 63) yield {
@@ -96,15 +123,15 @@ object CalibrationController {
       dc.enableImagingMode()
       val numFrames = 2
       val frameSet = for (i <- 0 until numFrames) yield {
-        val rawFrame = dc.getFrame
+        val rawFrame = fp.getClippedFrameData
         for (i <- 0 until 384 * 288) yield {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
-      val bas = Frame.fromProcessed(frameSet.head.toArray)
-      bas.saveTiff("nucFrame_" + i + ".tif")
+      val bas = Frame.createFrom14Bit(xSize, ySize, frameSet.head.toArray)
+      bas.save("nucFrame_" + i + ".tif")
       for (i <- 0 until 384 * 288) yield
-        math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - 8192)
+      math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - nucCalibrationTargetValue.value.toInt)
     }
     val deadPixels = Array.ofDim[Boolean](384 * 288)
     val idealNuc = for (i <- 0 until 384 * 288) yield {
@@ -120,8 +147,8 @@ object CalibrationController {
       minIndex
     }.toByte
     MeasurementController.measurement.dead = deadPixels
-    val nucFrame = Frame.fromProcessed(idealNuc.map(_.toInt).toArray)
-    nucFrame.saveTiff("nucFrame.tif")
+    val nucFrame = Frame.createFrom14Bit(xSize, ySize, idealNuc.map(_.toInt).toArray)
+    nucFrame.save("nucFrame.tif")
     val frame = Array.ofDim[Byte](288, 384)
     for (i <- 0 until 288 * 384) {
       frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte
@@ -129,10 +156,13 @@ object CalibrationController {
     dc.disableImagingMode()
     dc.eraseActiveFlashPartition()
     dc.writeFrameToFlashMemory(frame)
+    currentNuc = frame
     dc.setNucMode(NucMode.Enabled)
     dc.enableImagingMode()
     nucFrames(partitionToIndex(selectedPartition.value)) = Some(new NucFrame(nucLabel.value, frame, deadPixels))
     currentNucLabel.value = nucLabel.value
     nucLabel.value = ""
   }
+
+  var currentNuc = Array.ofDim[Byte](288, 384)
 }

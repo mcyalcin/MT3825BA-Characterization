@@ -3,6 +3,7 @@ package com.mikrotasarim.ui.controller
 import com.mikrotasarim.api.command.ApiConstants.{NucMode, TriggerMode}
 import com.mikrotasarim.api.command.DeviceController
 import com.mikrotasarim.api.device.{ConsoleMockDeviceInterface, OpalKellyInterface}
+import com.mikrotasarim.ui.model.{A1FrameProvider, A0FrameProvider, FrameProvider}
 
 import scalafx.beans.property.{BooleanProperty, StringProperty}
 import scalafx.collections.ObservableBuffer
@@ -12,6 +13,7 @@ object FpgaController {
   // TODO: Use of null is ugly. Replace with options, doing the necessary rework everywhere these are used.
   var deviceController: DeviceController = null
   var device: OpalKellyInterface = null
+  var frameProvider: FrameProvider = null
 
   val deviceConnected = BooleanProperty(value = false)
   val isSelfTest = BooleanProperty(value = false)
@@ -39,18 +41,28 @@ object FpgaController {
   }
 
   val bitfiles = Map(
-    "Package" -> "mt3825ba_a0_package.bit",
-    "Dewar" -> "mt3825ba_a0_dewar.bit"
+    ("A0", "Package") -> "mt3825ba_a0_package.bit",
+    ("A0", "Dewar") -> "mt3825ba_a0_dewar.bit",
+    ("A1", "Package") -> "mt3825ba_a1_package.bit",
+    ("A1", "Dewar") -> "mt3825ba_a1_dewar.bit",
+    ("B0", "Package") -> "mt3825ba_b0_package.bit",
+    ("B0", "Dewar") -> "mt3825ba_b0_dewar.bit"
   )
 
-  val bitfileLabels = ObservableBuffer(bitfiles.keySet.toList)
+  val bitfileLabels = ObservableBuffer(bitfiles.keySet.map(_._2).toList)
+  val modelLabels = ObservableBuffer(bitfiles.keySet.map(_._1).toList)
 
+  val selectedModel = StringProperty("A0")
+
+  selectedModel.onChange(a0Selected.set(selectedModel.value == "A0"))
+
+  val a0Selected = BooleanProperty(value = true)
   val selectedBitfile = StringProperty("Package")
 
   def connectToFpga(): Unit = {
     deviceController = if (!isSelfTest.value) {
       if (device == null) {
-        device = new OpalKellyInterface(bitfiles(selectedBitfile.value))
+        device = new OpalKellyInterface(bitfiles(selectedModel.value, selectedBitfile.value))
       }
       new DeviceController(device)
     } else {
@@ -67,10 +79,15 @@ object FpgaController {
     deviceController.setNucMode(NucMode.Enabled)
     deviceController.setAdcDelay(2)
     deviceController.writeToRoicMemory(22,2047)
-    deviceController.writeToRoicMemory(18,4)
+    deviceController.writeToRoicMemory(18,12)
     deviceController.setGlobalReferenceBias(3500)
     deviceController.setSamplingDelay(4)
     deviceController.enableImagingMode()
+    frameProvider =
+      if (a0Selected.value)
+        new A0FrameProvider(deviceController, xSize.value.toInt, ySize.value.toInt)
+      else
+        new A1FrameProvider(deviceController, xSize.value.toInt, ySize.value.toInt)
     deviceConnected.set(true)
   }
 

@@ -4,7 +4,7 @@ import com.mikrotasarim.api.device.DeviceNotFoundException
 import com.mikrotasarim.ui.controller.CalibrationController._
 import com.mikrotasarim.ui.controller.FpgaController._
 import com.mikrotasarim.ui.controller.ImageController._
-import com.mikrotasarim.ui.controller.{FpgaController, CalibrationController, MeasurementController}
+import com.mikrotasarim.ui.controller.{ImageController, FpgaController, CalibrationController, MeasurementController}
 import com.mikrotasarim.ui.model.{Measurement, MemoryMap}
 import org.controlsfx.dialog.Dialogs
 
@@ -13,14 +13,17 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.{IntegerProperty, StringProperty}
 import scalafx.geometry.Insets
+import scalafx.scene.chart.{CategoryAxis, NumberAxis, BarChart}
 import scalafx.scene.control._
+import scalafx.scene.image.ImageView
 import scalafx.scene.layout._
 import scalafx.scene.{Node, Scene}
 
 object Mt3825BaCharacterizationApp extends JFXApp {
 
+  // TODO: Divide this up.
+  // TODO: Consider changing the entry point of the application to facilitate a more flexible ui definition.
   object MyUncaughtExceptionHandler extends Thread.UncaughtExceptionHandler {
-    // TODO: Expand this
     def uncaughtException(thread: Thread, e: Throwable): Unit = e match {
       case e: UnsatisfiedLinkError => Dialogs.create()
         .title("Error")
@@ -42,7 +45,11 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         .masthead("Unhandled Error")
         .message(e.getMessage)
         .showException(e)
-      case _ => println("???")
+      case _ => Dialogs.create()
+        .title("Problem")
+        .masthead("Unhandled Problem")
+        .message(e.getMessage)
+        .showException(e)
     }
   }
 
@@ -59,15 +66,13 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     }
   }
 
-  stage.setMaximized(true)
-
   def controlTabs: Node = new TabPane {
     disable <== !deviceConnected
     tabs = List(
       new Tab {
         text = "Image"
         closable = false
-        content = imageControlPanel
+        content = imageTab
       },
       new Tab {
         text = "Calibration"
@@ -77,10 +82,120 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       new Tab {
         text = "Measurement"
         closable = false
-        content = measurementControlPanel
+        content = measurementTab
       }
     )
   }
+
+  def measurementTab: Node = new HBox {
+    spacing = 10
+    content = Seq(
+      measurementControlPanel,
+      measurementDisplay
+    )
+  }
+
+  def measurementDisplay: Node = new ScrollPane {
+    content = new HBox {
+      padding = Insets(10)
+      spacing = 20
+      content = Seq(
+        heatmapBox,
+        histogramBox
+      )
+    }
+  }
+
+  def heatmapBox: Node = new VBox {
+    spacing = 10
+    content = Seq(
+      measurementDisplaySelector,
+      heatmapImage
+    )
+  }
+
+  def histogramBox: Node = new VBox {
+    spacing = 10
+    content = Seq(
+      histogramParameters,
+      histogramChart,
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Mean: "),
+          new Label {
+            text <==> MeasurementController.displayMean
+          }
+        )
+      },
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Peak: "),
+          new Label {
+            text <==> MeasurementController.displayPeak
+          }
+        )
+      }
+    )
+  }
+
+  def histogramParameters = new VBox {
+    spacing = 10
+    content = Seq(
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Min: ") {
+            prefWidth = 80
+          },
+          new TextField {
+            text <==> MeasurementController.measurementDisplayMin
+          }
+        )
+      },
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Max: ") {
+            prefWidth = 80
+          },
+          new TextField {
+            text <==> MeasurementController.measurementDisplayMax
+          }
+        )
+      },
+      new HBox {
+        spacing = 5
+        content = Seq(
+          new Label("Bin Count: ") {
+            prefWidth = 80
+          },
+          new TextField {
+            text <==> MeasurementController.histogramBinCount
+          }
+        )
+      },
+      new Button("Apply") {
+        onAction = handle { MeasurementController.handleDisplayRangeChange() }
+      }
+    )
+  }
+
+  def measurementDisplaySelector: Node = new ChoiceBox(MeasurementController.measurementLabels) {
+    value <==> MeasurementController.selectedMeasurement
+  }
+
+  def heatmapImage: Node = new ImageView() {
+    image <== MeasurementController.heatmap
+  }
+
+  def histogramChart: Node = new BarChart(CategoryAxis(), NumberAxis(), MeasurementController.histogram) {
+    animated = false
+  }
+
+  // TODO
+  def measurementFrameSaveControl: Node = new HBox()
 
   def calibrationControlPanel: Node = new ScrollPane {
     content = new VBox {
@@ -90,16 +205,21 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         nucControls,
         new Separator,
         correctionControls,
+        histEq,
         new Separator,
         globalReferenceBiasSlider,
-        //        pixelBiasSlider,
+        pixelBiasSlider,
         integrationTimeSlider,
         adcDelaySlider
       )
     }
   }
 
-  def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String, apply: () => Unit, reset: () => Unit): Node =
+  def histEq: Node = new CheckBox("Histogram Equalization") {
+    selected <==> histEqSelected
+  }
+
+  def labeledSnappingSliderGroup(label: String, model: IntegerProperty, mini: Int, maxi: Int, increment: Int, unitLabel: String, apply: () => Unit, reset: () => Unit): Node = {
     new HBox {
       spacing = 10
       content = List(
@@ -115,10 +235,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           blockIncrement = increment
           majorTickUnit = increment
         },
-        new Label {
-          text <== model.asString + " " + unitLabel
-          prefWidth = 100
-        },
         new Button("Apply") {
           onAction = handle {
             apply()
@@ -128,13 +244,60 @@ object Mt3825BaCharacterizationApp extends JFXApp {
           onAction = handle {
             reset()
           }
+        },
+        new Label {
+          text <== model.asString + " " + unitLabel
+          prefWidth = 100
         }
       )
     }
+  }
 
   def globalReferenceBiasSlider = labeledSnappingSliderGroup("Global Reference Bias", CalibrationController.globalReferenceBias, 0, 3000, 1, "mV", CalibrationController.applyGlobalReferenceBias, CalibrationController.resetGlobalReferenceBias)
 
-  def pixelBiasSlider = labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
+  def pixelBiasSlider = new HBox {
+    disable <== a0Selected
+    spacing = 10
+    content = List(
+      new Label("Pixel Bias Range") {
+        prefWidth = 175
+      },
+      new Slider {
+        prefWidth = 200
+        min = 800
+        max = 2048
+        value <==> pixelBiasX
+        snapToTicks = true
+        blockIncrement = 1
+        majorTickUnit = 1
+      },
+      new Button("Apply") {
+        onAction = handle {
+          applyPixelBiasRange()
+        }
+      },
+      new Button("Default") {
+        onAction = handle {
+          resetPixelBiasRange()
+        }
+      },
+      new Label {
+        text <== pixelBiasLow
+        prefWidth = 140
+      },
+      new Label {
+        text <== pixelBiasHigh
+        prefWidth = 140
+      },
+      new Label {
+        text <== pixelBiasRange
+        prefWidth = 140
+      }
+    )
+  }
+
+
+    //labeledSnappingSliderGroup("Pixel Bias Range", CalibrationController.pixelBiasRange, 0, 1500, 1, "mV", CalibrationController.applyPixelBiasRange, CalibrationController.resetPixelBiasRange)
 
   def integrationTimeSlider = labeledSnappingSliderGroup("Integration Time", CalibrationController.integrationTime, 0, 100, 1, "\u00b5s", CalibrationController.applyIntegrationTime, CalibrationController.resetIntegrationTime)
 
@@ -146,6 +309,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       spacing = 10
       content = List(
         new CheckBox("Enable Correction") {
+          disable <== !Measurement.darkImageSet
           selected <==> correctionEnabled
         },
         new RadioButton("1 point") {
@@ -177,6 +341,9 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     content = List(
       nucLabelBox,
       partitionSelector,
+      new TextField {
+        text <==> CalibrationController.nucCalibrationTargetValue
+      },
       new Button("Calculate and Save") {
         onAction = handle {
           calculateAndApplyNuc()
@@ -203,7 +370,13 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
+  def modelSelector: Node = new ChoiceBox(modelLabels) {
+    disable <== deviceConnected
+    value <==> selectedModel
+  }
+
   def bitfileSelector: Node = new ChoiceBox(bitfileLabels) {
+    disable <== deviceConnected
     value <==> selectedBitfile
   }
 
@@ -294,7 +467,6 @@ object Mt3825BaCharacterizationApp extends JFXApp {
       new Button("Resistor Map") {
         onAction = handle {
           MeasurementController.createResistorMap()
-          MeasurementController.createReferenceResistorMap()
           FpgaController.disconnectFromFpga()
           FpgaController.connectToFpga()
         }
@@ -340,6 +512,14 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     )
   }
 
+  def imageTab: Node = new HBox {
+    spacing = 10
+    content = Seq(
+      imageControlPanel,
+      currentImage
+    )
+  }
+
   def imageControlPanel: Node = new ScrollPane {
     content = new VBox {
       padding = Insets(10)
@@ -350,9 +530,14 @@ object Mt3825BaCharacterizationApp extends JFXApp {
         new Separator,
         imageSaveControls,
         new Separator,
-        imageOpenButton
+        imageOpenButton,
+        streamControls
       )
     }
+  }
+
+  def currentImage: Node = new ImageView() {
+    image <== ImageController.currentImage
   }
 
   def windowingControls: Node = new VBox {
@@ -393,11 +578,11 @@ object Mt3825BaCharacterizationApp extends JFXApp {
 
   def xOriginBox: Node = box("x Origin", xOrigin)
 
-  def xSizeBox: Node = box("x Size", xSize)
+  def xSizeBox: Node = box("x Size", FpgaController.xSize)
 
   def yOriginBox: Node = box("y Origin", yOrigin)
 
-  def ySizeBox: Node = box("y Size", ySize)
+  def ySizeBox: Node = box("y Size", FpgaController.ySize)
 
   def imageSaveControls: Node = new VBox {
     spacing = 10
@@ -411,9 +596,33 @@ object Mt3825BaCharacterizationApp extends JFXApp {
   }
 
   def imageOpenButton: Node = new Button("Open") {
+    disable <== streamOn
     onAction = handle {
-      openImage()
+      refreshImage()
     }
+  }
+
+  def streamControls: Node = new VBox{
+    spacing = 10
+    content = Seq(
+      new CheckBox("Stream") {
+        selected <==> streamOn
+      },
+      new Slider {
+        disable <== streamOn
+        prefWidth = 200
+        min = 1
+        max = 20
+        value <==> frameRate
+        snapToTicks = true
+        blockIncrement = 1
+        majorTickUnit = 1
+        showTickMarks = true
+        showTickLabels = true
+        majorTickUnit = 5
+        minorTickCount = 5
+      }
+    )
   }
 
   def imagePrefixSelector: Node = new TextField {
@@ -438,6 +647,7 @@ object Mt3825BaCharacterizationApp extends JFXApp {
     padding = Insets(10)
     spacing = 20
     content = List(
+      modelSelector,
       bitfileSelector,
       connectButton,
       disconnectButton,
