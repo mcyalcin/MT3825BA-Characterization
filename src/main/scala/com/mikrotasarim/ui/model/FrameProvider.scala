@@ -1,6 +1,7 @@
 package com.mikrotasarim.ui.model
 
 import com.mikrotasarim.api.command.DeviceController
+import com.mikrotasarim.ui.controller.{MeasurementController, FpgaController}
 
 abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initialYSize: Int) {
   val deadLines: Int
@@ -32,8 +33,33 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
       efficientClippedFrameData(i) = frameData(nextValid)
       nextValid += 1
     }
-    val frame = Frame.createFromRaw(xSize, ySize, efficientClippedFrameData, depth)
+    val combinedFrameData = correctImage(combineBytes(efficientClippedFrameData))
+//    val frame = Frame.createFromRaw(xSize, ySize, efficientClippedFrameData, depth)
+    val frame = Frame.createFrom14Bit(xSize, ySize, combinedFrameData)
     frame
+  }
+
+  def combineBytes(raw: Array[Byte]): Array[Int] = {
+    def unsigned(b: Byte): Int = {
+      (b + 256) % 256
+    }
+    (for (i <- 0 until 384 * 288) yield unsigned(raw(2*i)) + unsigned(raw(2*i+1))*256).toArray
+  }
+
+  def correctImage(frameData: Array[Int]): Array[Int] = {
+    def onePointCorrect(img: Array[Int]): Array[Int] =
+      (for (i <- 0 until 384 * 288) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
+
+    def twoPointCorrect(img: Array[Int]): Array[Int] = {
+      (for (i <- 0 until 384 * 288) yield
+      (MeasurementController.measurement.slope(i) *
+        Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toInt).toArray
+    }
+
+    if (FpgaController.correctionEnabled.value)
+      if (FpgaController.onePointCorrection.value) onePointCorrect(frameData)
+      else twoPointCorrect(frameData)
+    else frameData
   }
 
   def getRawFrame: Frame = {
