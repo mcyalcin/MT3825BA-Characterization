@@ -161,6 +161,92 @@ object MeasurementController {
 
   def createA1ResistorMaps(): Unit = {
     // TODO: Pending redefinition
+    dc.disableImagingMode()
+    dc.setReset()
+    dc.clearReset()
+    dc.initializeRoic()
+    dc.setNucMode(NucMode.Fixed,255)
+    dc.sendReferenceDataToRoic()
+    dc.setNucMode(NucMode.Fixed,254)
+    dc.setTriggerMode(TriggerMode.Slave_Software)
+    if (FpgaController.isCmosTest.value) {
+      dc.writeToRoicMemory(17,3)
+    }
+    dc.setIntegrationTime(30)
+    dc.setPixelGain(31)
+    dc.setPixelBiasRange(1248)
+    dc.setActiveFlashPartition(0)
+    dc.writeToRoicMemory(7,2063)
+    dc.updateRoicMemory()
+    dc.writeToRoicMemory(18,12)
+    dc.updateRoicMemory()
+    dc.enableImagingMode()
+
+    var pFrame = combineBytes(dc.getFullFrame)
+    var frame = combineBytes(dc.getFullFrame)
+    val refRes = Array.ofDim[Double](384 * 288)
+    val refMean = Array.ofDim[Double](384 * 12)
+    val deltas = Array.ofDim[Double](384 * 288)
+    val pixValues0 = Array.ofDim[Int](384 * 288)
+    val refBiasValues0 = Array.ofDim[Int](384 * 288)
+    val pixValues1 = Array.ofDim[Int](384 * 288)
+    val refBiasValues1 = Array.ofDim[Int](384 * 288)
+
+    for (j <- 1 to 23) {
+      val biasVal = 70 + j*70
+      dc.setGlobalReferenceBias(biasVal)
+      dc.updateRoicMemory()
+      pFrame = frame
+      frame = combineBytes(dc.getFrame)
+      for (i <- frame.indices) {
+        if(pFrame(i) <= 13000 && frame(i) >= 13000) {
+          val k = 88086021.51
+          val a = pFrame(i)
+          val b = frame(i)
+          refRes(i) = k / math.abs(frame(i) - pFrame(i))
+          deltas(i) = math.abs(frame(i) - pFrame(i))
+          refMean(((i/384)%12)*384+(i%384)) = refMean(((i/384)%12)*384+(i%384)) + refRes(i)
+          pixValues0(i) = frame(i)
+          refBiasValues0(i) = j
+        }
+      }
+
+    }
+
+    dc.disableImagingMode()
+    dc.setNucMode(NucMode.Fixed,242)
+    dc.enableImagingMode()
+
+    for (j <- 1 to 19) {
+      val biasVal = 70 + j*70
+      dc.setGlobalReferenceBias(biasVal)
+      dc.updateRoicMemory()
+      pFrame = frame
+      frame = combineBytes(dc.getFrame)
+      for (i <- frame.indices) {
+        if(pFrame(i) <= 13000 && frame(i) >= 13000) {
+          pixValues1(i) = frame(i)
+          refBiasValues1(i) = j
+        }
+      }
+
+    }
+
+    val res = for (i <- refRes.indices) yield {
+      val K = 5.676e-10
+      val a = (pixValues0(i) - pixValues1(i))*K
+      val b = 50e-3*(refBiasValues0(i) - refBiasValues1(i))/(refRes(i) + K)
+      deltas(i) = pixValues0(i) - pixValues1(i)
+      refRes(i) = b
+      val c = (a - b + K)
+      66e-3/c   //51e-3
+    }
+
+    for (i <- refMean.indices) {
+      refMean(i) = refMean(i)/24
+    }
+    measurement.resistorMap = res.toArray
+    measurement.referenceResistorMap = refMean.toArray
   }
 
   def fp = FpgaController.frameProvider
