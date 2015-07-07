@@ -58,7 +58,8 @@ object ImageController {
 
     if (FpgaController.correctionEnabled.value)
       if (FpgaController.onePointCorrection.value) onePointCorrect(frame)
-      else twoPointCorrect(frame)
+      else if (FpgaController.twoPointCorrection.value) twoPointCorrect(frame)
+      else frame
     else frame
   }
 
@@ -98,5 +99,29 @@ object ImageController {
 
   def stopStream(): Unit = {
     streamTimeline.stop()
+  }
+
+  def captureImageSequence(num: Int): IndexedSeq[IndexedSeq[Int]] = {
+    for (i <- 0 until num) yield fp.getClippedFrame
+  }
+
+  def computeAverageFrame(frames: IndexedSeq[IndexedSeq[Int]]): IndexedSeq[Int] = {
+    for (i <- 0 until xSize * ySize) yield (for (j <- 0 until 64) yield frames(j)(i)).sum / frames.length
+  }
+
+  def captureAverageFrame(numFrames: Int): IndexedSeq[Int] = {
+    val frames = captureImageSequence(64)
+    val avgFrame = computeAverageFrame(frames)
+    avgFrame
+  }
+
+  def captureDarkImage(): Unit = {
+    val frame = captureAverageFrame(64)
+    fp.dark = Some(frame)
+  }
+
+  def captureGrayImage(): Unit = {
+    val frame = captureAverageFrame(64)
+    fp.gray = Some(frame)
   }
 }

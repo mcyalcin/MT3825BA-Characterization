@@ -312,17 +312,17 @@ object MeasurementController {
     vDet.set(vmeas.toString)
 
     dc.setPixelMidpoint(vmeas - 8)
-    val f1 = combineBytes(fp.getClippedFrameData)
+    val f1 = fp.getClippedFrame
     dc.setPixelMidpoint(vmeas + 8)
-    val f2 = combineBytes(fp.getClippedFrameData)
+    val f2 = fp.getClippedFrame
 
     val s1 = for (i <- f1.indices) yield f2(i) - f1(i)
 
     dc.setIntegrationTime(0)
     dc.setPixelMidpoint(vmeas - 8)
-    val f3 = combineBytes(fp.getClippedFrameData)
+    val f3 = fp.getClippedFrame
     dc.setPixelMidpoint(vmeas + 8)
-    val f4 = combineBytes(fp.getClippedFrameData)
+    val f4 = fp.getClippedFrame
 
     val s2 = for (i <- f3.indices) yield f4(i) - f3(i)
 
@@ -397,17 +397,17 @@ object MeasurementController {
     vRef.set(vmeas.toString)
 
     dc.setPixelMidpoint(vmeas - 8)
-    val f1 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f1 = fp.getClippedFrame.slice(384 * 11, 384 * 11 + 384 * 12)
     dc.setPixelMidpoint(vmeas + 8)
-    val f2 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f2 = fp.getClippedFrame.slice(384 * 11, 384 * 11 + 384 * 12)
 
     val s1 = for (i <- f1.indices) yield f2(i) - f1(i)
 
     dc.setIntegrationTime(0)
     dc.setPixelMidpoint(vmeas - 8)
-    val f3 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f3 = fp.getClippedFrame.slice(384 * 11, 384 * 11 + 384 * 12)
     dc.setPixelMidpoint(vmeas + 8)
-    val f4 = combineBytes(fp.getClippedFrameData).slice(384 * 11, 384 * 11 + 384 * 12)
+    val f4 = fp.getClippedFrame.slice(384 * 11, 384 * 11 + 384 * 12)
 
     val s2 = for (i <- f3.indices) yield f4(i) - f3(i)
 

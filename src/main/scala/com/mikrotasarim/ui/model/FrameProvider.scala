@@ -18,7 +18,11 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
     dc.getFrameData(xS * yS * 2)
   }
 
-  def getClippedFrameData: Array[Byte] = {
+  def getClippedFrame: IndexedSeq[Int] = {
+    combineBytes(getClippedFrameData)
+  }
+
+  def getClippedFrameData: IndexedSeq[Byte] = {
     val frameData = getFrameData
     val clippedFrameData = frameData.drop(deadLines * xSize * 2).zipWithIndex.filter(_._2 % (xS * 2) < (xSize * 2)).map(_._1)
     clippedFrameData
@@ -34,23 +38,26 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
       nextValid += 1
     }
     val combinedFrameData = correctImage(combineBytes(efficientClippedFrameData))
-//    val frame = Frame.createFromRaw(xSize, ySize, efficientClippedFrameData, depth)
     val frame = Frame.createFrom14Bit(xSize, ySize, combinedFrameData)
     frame
   }
 
-  def combineBytes(raw: Array[Byte]): Array[Int] = {
+  def combineBytes(raw: IndexedSeq[Byte]): IndexedSeq[Int] = {
     def unsigned(b: Byte): Int = {
       (b + 256) % 256
     }
     (for (i <- 0 until 384 * 288) yield unsigned(raw(2*i)) + unsigned(raw(2*i+1))*256).toArray
   }
 
-  def correctImage(frameData: Array[Int]): Array[Int] = {
-    def onePointCorrect(img: Array[Int]): Array[Int] =
+  var dark: Option[IndexedSeq[Int]] = None
+
+  var gray: Option[IndexedSeq[Int]] = None
+
+  def correctImage(frameData: IndexedSeq[Int]): IndexedSeq[Int] = {
+    def onePointCorrect(img: IndexedSeq[Int]): IndexedSeq[Int] =
       (for (i <- 0 until 384 * 288) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
 
-    def twoPointCorrect(img: Array[Int]): Array[Int] = {
+    def twoPointCorrect(img: IndexedSeq[Int]): IndexedSeq[Int] = {
       (for (i <- 0 until 384 * 288) yield
       (MeasurementController.measurement.slope(i) *
         Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toInt).toArray
