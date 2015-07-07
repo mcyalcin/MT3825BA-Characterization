@@ -28,10 +28,30 @@ object FpgaController {
   val ySize = StringProperty("288")
   // TODO: Add validation to number fields
 
-  xOrigin.onChange(deviceController.setWindowOrigin(xOrigin.value.toLong, yOrigin.value.toLong))
-  yOrigin.onChange(deviceController.setWindowOrigin(xOrigin.value.toLong, yOrigin.value.toLong))
-  xSize.onChange(deviceController.setWindowSize(xSize.value.toLong, ySize.value.toLong))
-  ySize.onChange(deviceController.setWindowSize(xSize.value.toLong, ySize.value.toLong))
+  xOrigin.onChange({
+    correctionEnabled.set(false)
+    frameProvider.dark = None
+    frameProvider.gray = None
+    deviceController.setWindowOrigin(xOrigin.value.toLong, yOrigin.value.toLong)
+  })
+  yOrigin.onChange({
+    correctionEnabled.set(false)
+    frameProvider.dark = None
+    frameProvider.gray = None
+    deviceController.setWindowOrigin(xOrigin.value.toLong, yOrigin.value.toLong)
+  })
+  xSize.onChange({
+    correctionEnabled.set(false)
+    frameProvider.dark = None
+    frameProvider.gray = None
+    deviceController.setWindowSize(xSize.value.toLong, ySize.value.toLong)
+  })
+  ySize.onChange({
+    correctionEnabled.set(false)
+    frameProvider.dark = None
+    frameProvider.gray = None
+    deviceController.setWindowSize(xSize.value.toLong, ySize.value.toLong)
+  })
 
   def resetWindowSize(): Unit = {
     xOrigin.set("0")
