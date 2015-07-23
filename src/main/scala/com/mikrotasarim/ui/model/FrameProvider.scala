@@ -15,7 +15,7 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
   def yS: Int = ySize + deadLines
 
   def getFrameData: Array[Byte] = {
-    dc.getFrameData(xS * yS * 2)
+    dc.getFrameDataFromBtPipe(xS * yS * 2)
   }
 
   def getClippedFrameData: Array[Byte] = {
@@ -34,7 +34,6 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
       nextValid += 1
     }
     val combinedFrameData = correctImage(combineBytes(efficientClippedFrameData))
-//    val frame = Frame.createFromRaw(xSize, ySize, efficientClippedFrameData, depth)
     val frame = Frame.createFrom14Bit(xSize, ySize, combinedFrameData)
     frame
   }
