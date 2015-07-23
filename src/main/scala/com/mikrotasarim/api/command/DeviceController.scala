@@ -349,6 +349,15 @@ class DeviceController(device: DeviceInterface) {
     rawFrame
   }
 
+  def getFrameDataFromBtPipe(frameSize: Int): Array[Byte] = {
+    setWiresAndTrigger(Map(
+      commandWire -> sFsynOpCode
+    ))
+    val rawFrame = Array.ofDim[Byte](frameSize)
+    device.readFromBlockPipeOut(imageOutPipe, frameSize, rawFrame)
+    rawFrame
+  }
+
   def getFrame: Array[Byte] = {
     val fullFrame = getFullFrame
 

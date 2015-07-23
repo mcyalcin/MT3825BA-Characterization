@@ -15,7 +15,7 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
   def yS: Int = ySize + deadLines
 
   def getFrameData: Array[Byte] = {
-    dc.getFrameData(xS * yS * 2)
+    dc.getFrameDataFromBtPipe(xS * yS * 2)
   }
 
   def getClippedFrame: IndexedSeq[Int] = {
@@ -46,19 +46,16 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
     def unsigned(b: Byte): Int = {
       (b + 256) % 256
     }
-    (for (i <- 0 until 384 * 288) yield unsigned(raw(2*i)) + unsigned(raw(2*i+1))*256).toArray
+    (for (i <- 0 until (raw.length / 2)) yield unsigned(raw(2*i)) + unsigned(raw(2*i+1))*256).toArray
   }
 
-  var dark: Option[IndexedSeq[Int]] = None
-
-  var gray: Option[IndexedSeq[Int]] = None
 
   def correctImage(frameData: IndexedSeq[Int]): IndexedSeq[Int] = {
     def onePointCorrect(img: IndexedSeq[Int]): IndexedSeq[Int] =
-      (for (i <- 0 until 384 * 288) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
+      (for (i <- 0 until xSize * ySize) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
 
     def twoPointCorrect(img: IndexedSeq[Int]): IndexedSeq[Int] = {
-      (for (i <- 0 until 384 * 288) yield
+      (for (i <- 0 until xSize * ySize) yield
       (MeasurementController.measurement.slope(i) *
         Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toInt).toArray
     }

@@ -124,17 +124,17 @@ object CalibrationController {
       val numFrames = 2
       val frameSet = for (i <- 0 until numFrames) yield {
         val rawFrame = fp.getClippedFrameData
-        for (i <- 0 until 384 * 288) yield {
+        for (i <- 0 until xSize * ySize) yield {
           rawFrame(2 * i) + rawFrame(2 * i + 1) * 256
         }
       }
       val bas = Frame.createFrom14Bit(xSize, ySize, frameSet.head.toArray)
       bas.save("nucFrame_" + i + ".tif")
-      for (i <- 0 until 384 * 288) yield
+      for (i <- 0 until xSize * ySize) yield
       math.abs((for (j <- 0 until numFrames) yield frameSet(j)(i)).sum.toDouble / numFrames - nucCalibrationTargetValue.value.toInt)
     }
-    val deadPixels = Array.ofDim[Boolean](384 * 288)
-    val idealNuc = for (i <- 0 until 384 * 288) yield {
+    val deadPixels = Array.ofDim[Boolean](xSize * ySize)
+    val idealNuc = for (i <- 0 until xSize * ySize) yield {
       var min = nucCalibrationDistances.head(i)
       var minIndex = 0
       for (j <- 1 to 63) {
@@ -149,9 +149,9 @@ object CalibrationController {
     MeasurementController.measurement.dead = deadPixels
     val nucFrame = Frame.createFrom14Bit(xSize, ySize, idealNuc.map(_.toInt).toArray)
     nucFrame.save("nucFrame.tif")
-    val frame = Array.ofDim[Byte](288, 384)
-    for (i <- 0 until 288 * 384) {
-      frame(i / 384)(i % 384) = (idealNuc(i) + 192).toByte
+    val frame = Array.ofDim[Byte](ySize, xSize)
+    for (i <- 0 until ySize * xSize) {
+      frame(i / xSize)(i % xSize) = (idealNuc(i) + 192).toByte // TODO: Get rid of the magic number
     }
     dc.disableImagingMode()
     dc.eraseActiveFlashPartition()
@@ -164,5 +164,5 @@ object CalibrationController {
     nucLabel.value = ""
   }
 
-  var currentNuc = Array.ofDim[Byte](288, 384)
+  var currentNuc = Array.ofDim[Byte](ySize, xSize)
 }
