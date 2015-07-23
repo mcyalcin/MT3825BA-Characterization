@@ -43,15 +43,15 @@ abstract class FrameProvider(val dc: DeviceController, initialXSize: Int, initia
     def unsigned(b: Byte): Int = {
       (b + 256) % 256
     }
-    (for (i <- 0 until 384 * 288) yield unsigned(raw(2*i)) + unsigned(raw(2*i+1))*256).toArray
+    (for (i <- 0 until (raw.length / 2)) yield unsigned(raw(2*i)) + unsigned(raw(2*i+1))*256).toArray
   }
 
   def correctImage(frameData: Array[Int]): Array[Int] = {
     def onePointCorrect(img: Array[Int]): Array[Int] =
-      (for (i <- 0 until 384 * 288) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
+      (for (i <- 0 until xSize * ySize) yield Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toArray
 
     def twoPointCorrect(img: Array[Int]): Array[Int] = {
-      (for (i <- 0 until 384 * 288) yield
+      (for (i <- 0 until xSize * ySize) yield
       (MeasurementController.measurement.slope(i) *
         Seq(0, img(i) - MeasurementController.measurement.dark(i)).max).toInt).toArray
     }
